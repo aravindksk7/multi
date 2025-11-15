@@ -9,9 +9,11 @@ from app.database import get_db
 from app.schemas import XMLCompareRequest, JobQueryParams
 from app.services.job_service import JobService
 from app.models import JobStatus
+from app.modules.fix_messaging import FixMessagingService, SendFixMessageRequest
 
 router = APIRouter(tags=["Web UI"])
 templates = Jinja2Templates(directory="app/templates")
+fix_service = FixMessagingService()
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -128,5 +130,113 @@ def job_detail(
         {
             "request": request,
             "job": job
+        }
+    )
+
+
+@router.get("/fix", response_class=HTMLResponse)
+def fix_home(request: Request):
+    """FIX messaging home page."""
+    return templates.TemplateResponse("fix_home.html", {"request": request})
+
+
+@router.get("/fix/send", response_class=HTMLResponse)
+def fix_send_form(request: Request):
+    """FIX message send form."""
+    return templates.TemplateResponse("fix_send.html", {"request": request})
+
+
+@router.post("/fix/send")
+async def fix_send_message(
+    request: Request,
+    msg_type: str = Form(...),
+    sender_comp_id: str = Form(...),
+    target_comp_id: str = Form(...),
+    cl_ord_id: Optional[str] = Form(None),
+    symbol: Optional[str] = Form(None),
+    side: Optional[str] = Form(None),
+    order_qty: Optional[str] = Form(None),
+    ord_type: Optional[str] = Form(None),
+    price: Optional[str] = Form(None),
+    time_in_force: Optional[str] = Form(None),
+    session_id: Optional[str] = Form(None),
+    db: Session = Depends(get_db)
+):
+    """Handle FIX message send form submission."""
+    try:
+        fix_request = SendFixMessageRequest(
+            msg_type=msg_type,
+            sender_comp_id=sender_comp_id,
+            target_comp_id=target_comp_id,
+            cl_ord_id=cl_ord_id,
+            symbol=symbol,
+            side=side,
+            order_qty=order_qty,
+            ord_type=ord_type,
+            price=price,
+            time_in_force=time_in_force,
+            session_id=session_id
+        )
+        
+        message = fix_service.create_fix_message(fix_request, db)
+        return RedirectResponse(url=f"/fix/messages/{message.id}", status_code=303)
+    
+    except Exception as e:
+        return templates.TemplateResponse(
+            "fix_send.html",
+            {"request": request, "error": str(e)},
+            status_code=400
+        )
+
+
+@router.get("/fix/messages", response_class=HTMLResponse)
+def fix_list_messages(
+    request: Request,
+    status: Optional[str] = None,
+    msg_type: Optional[str] = None,
+    sender_comp_id: Optional[str] = None,
+    page: int = 1,
+    db: Session = Depends(get_db)
+):
+    """FIX messages list page."""
+    skip = (page - 1) * 20
+    messages, total = fix_service.list_messages(
+        db, skip, 20, status, msg_type, sender_comp_id
+    )
+    
+    total_pages = (total + 19) // 20
+    
+    return templates.TemplateResponse(
+        "fix_messages_list.html",
+        {
+            "request": request,
+            "messages": messages,
+            "total": total,
+            "page": page,
+            "total_pages": total_pages,
+            "status": status,
+            "msg_type": msg_type,
+            "sender_comp_id": sender_comp_id
+        }
+    )
+
+
+@router.get("/fix/messages/{message_id}", response_class=HTMLResponse)
+def fix_message_detail(
+    request: Request,
+    message_id: int,
+    db: Session = Depends(get_db)
+):
+    """FIX message detail page."""
+    message = fix_service.get_message(message_id, db)
+    
+    if not message:
+        raise HTTPException(status_code=404, detail=f"Message {message_id} not found")
+    
+    return templates.TemplateResponse(
+        "fix_message_detail.html",
+        {
+            "request": request,
+            "message": message
         }
     )

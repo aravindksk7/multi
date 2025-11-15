@@ -1,61 +1,91 @@
-# Test Tool Platform - XML Report Comparison
+# Test Tool Platform - Modular Testing Framework
 
-A comprehensive web-based platform for comparing XML test reports with deep diff analysis, built with Python, FastAPI, and SQLAlchemy.
+A comprehensive modular platform for test automation tools, featuring XML report comparison and FIX protocol messaging, built with Python, FastAPI, and SQLAlchemy.
 
 ## Features
 
+### XML Comparison Module
 - **XML Deep Comparison**: Compare two XML documents with XPath-based difference tracking
 - **Web UI**: User-friendly interface for uploading and comparing XML reports
 - **REST API**: Programmatic access for automation and integration
-- **Database Storage**: All comparison results stored in MySQL/MariaDB
+- **Database Storage**: All comparison results stored with full history
 - **Filtering & Search**: Query jobs by status, suite name, environment, and date range
 - **Detailed Diff Reports**: Track added, removed, and changed elements with full context
+
+### FIX Protocol Messaging Module
+- **FIX Message Creation**: Build and send FIX 4.4 protocol messages
+- **Order Management**: Support for NewOrderSingle, OrderCancel, and other message types
+- **Message History**: Store and query all sent FIX messages
+- **REST API**: Send messages and track status programmatically
+- **SimpleFIX Library**: Pure Python implementation, no C++ dependencies
 
 ## Tech Stack
 
 - **Language**: Python 3.11+
 - **Web Framework**: FastAPI
 - **ORM**: SQLAlchemy
-- **Database**: MySQL / MariaDB (configurable)
+- **Database**: SQLite (default) / MySQL / MariaDB
 - **Migrations**: Alembic
 - **Templating**: Jinja2
 - **HTTP Server**: Uvicorn
 - **Testing**: pytest
+- **FIX Protocol**: SimpleFIX
+
+## Modular Architecture
+
+The platform uses a feature-based modular architecture where each major feature is a self-contained module:
+
+- `app/modules/xml_compare/` - XML comparison functionality
+- `app/modules/fix_messaging/` - FIX protocol messaging
+
+See [MODULAR_ARCHITECTURE.md](MODULAR_ARCHITECTURE.md) for detailed architecture documentation.
 
 ## Project Structure
 
 ```
 multi/
 ├── app/
+│   ├── modules/                    # Feature modules
+│   │   ├── xml_compare/           # XML Comparison Module
+│   │   │   ├── models.py          # Database models
+│   │   │   ├── schemas.py         # Pydantic schemas
+│   │   │   ├── service.py         # Business logic
+│   │   │   └── job_service.py
+│   │   └── fix_messaging/         # FIX Protocol Module
+│   │       ├── models.py
+│   │       ├── schemas.py
+│   │       └── service.py
 │   ├── api/
-│   │   ├── web.py              # Web UI routes
-│   │   └── xml_compare.py      # REST API endpoints
-│   ├── services/
-│   │   ├── xml_compare.py      # Core XML comparison logic
-│   │   └── job_service.py      # Job management service
+│   │   ├── web.py                 # Web UI routes
+│   │   ├── xml_compare.py         # XML REST API
+│   │   └── fix_messaging.py       # FIX REST API
 │   ├── templates/
-│   │   ├── base.html           # Base template
-│   │   ├── index.html          # Home page
-│   │   ├── new_comparison.html # Comparison form
-│   │   ├── jobs_list.html      # Jobs listing
-│   │   └── job_detail.html     # Job details
-│   ├── config.py               # Application configuration
-│   ├── database.py             # Database setup
-│   ├── models.py               # SQLAlchemy models
-│   ├── schemas.py              # Pydantic schemas
-│   └── main.py                 # FastAPI app entry point
+│   │   ├── base.html
+│   │   ├── index.html
+│   │   ├── new_comparison.html
+│   │   ├── jobs_list.html
+│   │   └── job_detail.html
+│   ├── config.py                  # Application configuration
+│   ├── database.py                # Database setup
+│   ├── models.py                  # Model exports
+│   └── main.py                    # FastAPI app entry point
 ├── alembic/
 │   ├── versions/
-│   │   └── 001_initial_migration.py
-│   └── env.py                  # Alembic configuration
+│   │   ├── 001_initial_migration.py
+│   │   └── 002_add_fix_messages.py
+│   └── env.py
 ├── tests/
-│   ├── conftest.py             # Pytest fixtures
-│   ├── test_xml_compare.py     # XML comparison tests
-│   └── test_api.py             # API endpoint tests
-├── requirements.txt            # Python dependencies
-├── alembic.ini                 # Alembic configuration
-├── .env.example                # Environment variables template
-└── README.md                   # This file
+│   ├── conftest.py
+│   ├── test_xml_compare.py        # XML tests (9 tests)
+│   ├── test_api.py                # XML API tests (11 tests)
+│   └── test_fix_messaging.py      # FIX tests (8 tests)
+├── requirements.txt
+├── alembic.ini
+├── .env.example
+├── README.md
+├── FIX_MESSAGING_GUIDE.md         # FIX Protocol documentation
+├── MODULAR_ARCHITECTURE.md        # Architecture guide
+└── SQLITE_BACKEND.md              # SQLite setup guide
 ```
 
 ## Installation
@@ -63,8 +93,10 @@ multi/
 ### Prerequisites
 
 - Python 3.11 or higher
-- MySQL 8.0+ or MariaDB 10.5+
 - pip and virtualenv
+- (Optional) MySQL 8.0+ or MariaDB 10.5+ for production use
+
+**Note**: SQLite is used by default for easy setup. No database server required!
 
 ### Setup Steps
 
@@ -95,17 +127,35 @@ Copy `.env.example` to `.env` and update with your settings:
 cp .env.example .env
 ```
 
-Edit `.env`:
+Edit `.env` (SQLite is default, no changes needed):
 
 ```ini
-DATABASE_URL=mysql+pymysql://root:password@localhost:3306/testtool_db
+# SQLite (default - no database setup required)
+DATABASE_URL=sqlite:///./testtool.db
+
+# Or use MySQL for production
+# DATABASE_URL=mysql+pymysql://root:password@localhost:3306/testtool_db
+
 APP_NAME=Test Tool Platform
 DEBUG=True
 HOST=0.0.0.0
 PORT=8000
 ```
 
-5. **Create the database**
+5. **Run database migrations**
+
+```powershell
+alembic upgrade head
+```
+
+**That's it!** SQLite database will be created automatically.
+
+### Optional: MySQL Setup
+
+If you prefer MySQL for production:
+
+1. Install pymysql: `pip install pymysql cryptography`
+2. Create database:
 
 ```powershell
 # Connect to MySQL and create database
@@ -117,11 +167,23 @@ CREATE DATABASE testtool_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 EXIT;
 ```
 
-6. **Run database migrations**
+3. Update `.env` with MySQL URL
+4. Run migrations: `alembic upgrade head`
+
+## Quick Start (SQLite)
+
+Use the provided start script for instant setup:
 
 ```powershell
-alembic upgrade head
+.\start_sqlite.ps1
 ```
+
+This will:
+- Create virtual environment (if needed)
+- Install dependencies
+- Set up SQLite database
+- Run migrations
+- Start the server
 
 ## Running the Application
 
@@ -131,8 +193,11 @@ alembic upgrade head
 # Using uvicorn directly
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-# Or using Python
-python app/main.py
+# Or using the start script (SQLite)
+.\start_sqlite.ps1
+
+# Or using the original start script (MySQL)
+.\start.ps1
 ```
 
 The application will be available at:
@@ -277,19 +342,64 @@ The comparison engine provides:
 - `CHANGED`: `/testsuite/testcase[@name='TC2']/result/text()` (PASSED → FAILED)
 - `ADDED`: `/testsuite/testcase[@name='TC3']`
 
+## FIX Protocol Messaging
+
+The platform includes FIX protocol support for financial message sending.
+
+### Send a FIX Message
+
+```bash
+curl -X POST "http://localhost:8000/api/fix/messages" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "msg_type": "D",
+    "sender_comp_id": "SENDER",
+    "target_comp_id": "TARGET",
+    "cl_ord_id": "ORDER123",
+    "symbol": "AAPL",
+    "side": "1",
+    "order_qty": "100",
+    "ord_type": "2",
+    "price": "150.50",
+    "time_in_force": "0"
+  }'
+```
+
+### List FIX Messages
+
+```bash
+curl -X GET "http://localhost:8000/api/fix/messages"
+```
+
+### FIX Message Types Supported
+
+- **D**: NewOrderSingle - Submit new order
+- **F**: OrderCancelRequest - Cancel order
+- **0**: Heartbeat - Connection heartbeat
+- **A**: Logon - Session logon
+- And more...
+
+See [FIX_MESSAGING_GUIDE.md](FIX_MESSAGING_GUIDE.md) for complete FIX protocol documentation.
+
 ## Testing
 
-### Run All Tests
+### Run All Tests (28 tests)
 
 ```powershell
 pytest
 ```
 
-### Run Specific Test File
+### Run Module-Specific Tests
 
 ```powershell
+# XML comparison tests (9 tests)
 pytest tests/test_xml_compare.py
+
+# XML API tests (11 tests)
 pytest tests/test_api.py
+
+# FIX messaging tests (8 tests)
+pytest tests/test_fix_messaging.py
 ```
 
 ### Run with Coverage
@@ -301,9 +411,9 @@ pytest --cov=app --cov-report=html
 ### Test Coverage
 
 The test suite includes:
-- XML comparison engine tests (identical, changed, added, removed elements)
-- API endpoint tests (CRUD operations, filtering, pagination)
-- Edge cases (invalid XML, whitespace handling, attribute ordering)
+- **XML Module**: Comparison engine, API endpoints, edge cases (20 tests)
+- **FIX Module**: Message creation, listing, filtering, deletion (8 tests)
+- **Total**: 28 passing tests
 
 ## Database Migrations
 

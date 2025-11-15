@@ -6,27 +6,64 @@
 <div class="card">
     <h2>Welcome to Test Tool Platform</h2>
     <p style="margin: 1rem 0; color: #666;">
-        A comprehensive platform for XML test report comparison and analysis.
+        A modular platform for XML test report comparison and FIX protocol messaging.
     </p>
     
     <div style="margin-top: 2rem;">
-        <h3 style="margin-bottom: 1rem;">Quick Actions</h3>
-        <div style="display: flex; gap: 1rem;">
-            <a href="/compare/new" class="btn btn-success">Create New XML Comparison</a>
-            <a href="/jobs" class="btn">View All Jobs</a>
+        <h3 style="margin-bottom: 1rem;">Available Modules</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1rem;">
+            <a href="/compare/new" style="text-decoration: none;">
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s;">
+                    <h3 style="margin: 0 0 10px 0; font-size: 20px;">📊 XML Comparison</h3>
+                    <p style="margin: 0; opacity: 0.9; font-size: 14px; line-height: 1.5;">
+                        Compare XML test reports with deep diff analysis and XPath-based change tracking
+                    </p>
+                    <div style="margin-top: 15px; font-size: 14px; opacity: 0.8;">
+                        <div>✓ Deep diff analysis</div>
+                        <div>✓ XPath change tracking</div>
+                        <div>✓ Job history</div>
+                    </div>
+                </div>
+            </a>
+            
+            <a href="/fix" style="text-decoration: none;">
+                <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s;">
+                    <h3 style="margin: 0 0 10px 0; font-size: 20px;">💹 FIX Messaging</h3>
+                    <p style="margin: 0; opacity: 0.9; font-size: 14px; line-height: 1.5;">
+                        Send and manage FIX protocol messages for financial trading systems
+                    </p>
+                    <div style="margin-top: 15px; font-size: 14px; opacity: 0.8;">
+                        <div>✓ NewOrderSingle messages</div>
+                        <div>✓ Order cancellation</div>
+                        <div>✓ Message tracking</div>
+                    </div>
+                </div>
+            </a>
         </div>
     </div>
 </div>
 
-<div class="card">
-    <h3>Features</h3>
-    <ul style="margin-left: 1.5rem; margin-top: 1rem; line-height: 2;">
-        <li>Compare XML test reports with deep diff analysis</li>
-        <li>Track changes in test results over time</li>
-        <li>Web-based UI and REST API access</li>
-        <li>Filter and search through comparison history</li>
-        <li>XPath-based difference reporting</li>
-    </ul>
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
+    <div class="card">
+        <h3>Quick Links</h3>
+        <div style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+            <a href="/compare/new" style="color: #667eea; text-decoration: none;">→ New XML Comparison</a>
+            <a href="/jobs" style="color: #667eea; text-decoration: none;">→ View XML Jobs</a>
+            <a href="/fix/send" style="color: #f5576c; text-decoration: none;">→ Send FIX Message</a>
+            <a href="/fix/messages" style="color: #f5576c; text-decoration: none;">→ View FIX Messages</a>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Platform Features</h3>
+        <ul style="margin-left: 1.5rem; margin-top: 1rem; line-height: 2;">
+            <li>Modular architecture</li>
+            <li>Web-based UI and REST API</li>
+            <li>SQLite database storage</li>
+            <li>Real-time processing</li>
+            <li>Comprehensive documentation</li>
+        </ul>
+    </div>
 </div>
 
 <div class="card">

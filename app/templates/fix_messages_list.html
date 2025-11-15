@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}FIX Messages{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+            <h1 style="color: #2c3e50; margin-bottom: 5px;">FIX Message History</h1>
+            <p style="color: #7f8c8d; margin: 0;">View all sent FIX protocol messages</p>
+        </div>
+        <a href="/fix/send" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: 600;">
+            📤 Send New Message
+        </a>
+    </div>
+
+    <!-- Filters -->
+    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px;">
+        <form method="GET" action="/fix/messages" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: end;">
+            <div>
+                <label style="display: block; margin-bottom: 5px; color: #2c3e50; font-weight: 600; font-size: 14px;">Message Type</label>
+                <select name="msg_type" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                    <option value="">All Types</option>
+                    <option value="D" {% if msg_type == 'D' %}selected{% endif %}>D - NewOrderSingle</option>
+                    <option value="F" {% if msg_type == 'F' %}selected{% endif %}>F - OrderCancelRequest</option>
+                    <option value="G" {% if msg_type == 'G' %}selected{% endif %}>G - OrderCancelReplace</option>
+                    <option value="8" {% if msg_type == '8' %}selected{% endif %}>8 - ExecutionReport</option>
+                    <option value="0" {% if msg_type == '0' %}selected{% endif %}>0 - Heartbeat</option>
+                    <option value="A" {% if msg_type == 'A' %}selected{% endif %}>A - Logon</option>
+                </select>
+            </div>
+            
+            <div>
+                <label style="display: block; margin-bottom: 5px; color: #2c3e50; font-weight: 600; font-size: 14px;">Status</label>
+                <select name="status" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                    <option value="">All Statuses</option>
+                    <option value="PENDING" {% if status == 'PENDING' %}selected{% endif %}>Pending</option>
+                    <option value="SENT" {% if status == 'SENT' %}selected{% endif %}>Sent</option>
+                    <option value="FAILED" {% if status == 'FAILED' %}selected{% endif %}>Failed</option>
+                    <option value="ACKNOWLEDGED" {% if status == 'ACKNOWLEDGED' %}selected{% endif %}>Acknowledged</option>
+                    <option value="REJECTED" {% if status == 'REJECTED' %}selected{% endif %}>Rejected</option>
+                </select>
+            </div>
+            
+            <div>
+                <label style="display: block; margin-bottom: 5px; color: #2c3e50; font-weight: 600; font-size: 14px;">Sender Comp ID</label>
+                <input type="text" name="sender_comp_id" value="{{ sender_comp_id or '' }}" 
+                       placeholder="Filter by sender" 
+                       style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <button type="submit" style="flex: 1; background: #667eea; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 600;">
+                    🔍 Filter
+                </button>
+                <a href="/fix/messages" style="flex: 0 0 auto; background: #e9ecef; color: #495057; border: none; padding: 8px 16px; border-radius: 4px; text-decoration: none; display: inline-block; text-align: center; font-size: 14px;">
+                    Clear
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Messages Table -->
+    {% if messages %}
+    <div style="background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); overflow: hidden;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                <tr>
+                    <th style="padding: 12px; text-align: left; color: #495057; font-weight: 600; font-size: 14px;">ID</th>
+                    <th style="padding: 12px; text-align: left; color: #495057; font-weight: 600; font-size: 14px;">Type</th>
+                    <th style="padding: 12px; text-align: left; color: #495057; font-weight: 600; font-size: 14px;">Sender</th>
+                    <th style="padding: 12px; text-align: left; color: #495057; font-weight: 600; font-size: 14px;">Target</th>
+                    <th style="padding: 12px; text-align: left; color: #495057; font-weight: 600; font-size: 14px;">Symbol</th>
+                    <th style="padding: 12px; text-align: left; color: #495057; font-weight: 600; font-size: 14px;">Side</th>
+                    <th style="padding: 12px; text-align: left; color: #495057; font-weight: 600; font-size: 14px;">Qty</th>
+                    <th style="padding: 12px; text-align: left; color: #495057; font-weight: 600; font-size: 14px;">Status</th>
+                    <th style="padding: 12px; text-align: left; color: #495057; font-weight: 600; font-size: 14px;">Created</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for msg in messages %}
+                <tr style="border-bottom: 1px solid #f0f0f0; {% if loop.index % 2 == 0 %}background: #fafbfc;{% endif %}">
+                    <td style="padding: 12px;">
+                        <a href="/fix/messages/{{ msg.id }}" style="color: #667eea; text-decoration: none; font-weight: 600;">
+                            #{{ msg.id }}
+                        </a>
+                    </td>
+                    <td style="padding: 12px;">
+                        <span style="background: #e7f3ff; color: #0066cc; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 600;">
+                            {{ msg.msg_type }}
+                        </span>
+                    </td>
+                    <td style="padding: 12px; color: #495057; font-size: 14px;">{{ msg.sender_comp_id }}</td>
+                    <td style="padding: 12px; color: #495057; font-size: 14px;">{{ msg.target_comp_id }}</td>
+                    <td style="padding: 12px; color: #495057; font-size: 14px; font-weight: 600;">{{ msg.symbol or '-' }}</td>
+                    <td style="padding: 12px; font-size: 14px;">
+                        {% if msg.side == '1' %}
+                            <span style="color: #28a745;">BUY</span>
+                        {% elif msg.side == '2' %}
+                            <span style="color: #dc3545;">SELL</span>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td style="padding: 12px; color: #495057; font-size: 14px;">{{ msg.order_qty or '-' }}</td>
+                    <td style="padding: 12px;">
+                        {% if msg.status == 'PENDING' %}
+                            <span style="background: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 600;">⏳ PENDING</span>
+                        {% elif msg.status == 'SENT' %}
+                            <span style="background: #d1ecf1; color: #0c5460; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 600;">📤 SENT</span>
+                        {% elif msg.status == 'ACKNOWLEDGED' %}
+                            <span style="background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 600;">✓ ACK</span>
+                        {% elif msg.status == 'REJECTED' %}
+                            <span style="background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 600;">✗ REJECT</span>
+                        {% elif msg.status == 'FAILED' %}
+                            <span style="background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 600;">⚠ FAILED</span>
+                        {% else %}
+                            <span style="background: #e9ecef; color: #495057; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 600;">{{ msg.status }}</span>
+                        {% endif %}
+                    </td>
+                    <td style="padding: 12px; color: #6c757d; font-size: 13px;">
+                        {{ msg.created_at.strftime('%Y-%m-%d %H:%M:%S') if msg.created_at else '-' }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if total > 0 %}
+    <div style="margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <div style="color: #6c757d;">
+            Showing {{ ((page - 1) * page_size) + 1 }} to {{ min(page * page_size, total) }} of {{ total }} messages
+        </div>
+        <div style="display: flex; gap: 5px;">
+            {% if page > 1 %}
+                <a href="/fix/messages?page={{ page - 1 }}{% if msg_type %}&msg_type={{ msg_type }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if sender_comp_id %}&sender_comp_id={{ sender_comp_id }}{% endif %}" 
+                   style="background: #667eea; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none; font-size: 14px;">
+                    ← Previous
+                </a>
+            {% else %}
+                <span style="background: #e9ecef; color: #6c757d; padding: 8px 16px; border-radius: 4px; font-size: 14px;">
+                    ← Previous
+                </span>
+            {% endif %}
+            
+            <span style="background: white; border: 1px solid #dee2e6; padding: 8px 16px; border-radius: 4px; font-size: 14px;">
+                Page {{ page }}
+            </span>
+            
+            {% if page * page_size < total %}
+                <a href="/fix/messages?page={{ page + 1 }}{% if msg_type %}&msg_type={{ msg_type }}{% endif %}{% if status %}&status={{ status }}{% endif %}{% if sender_comp_id %}&sender_comp_id={{ sender_comp_id }}{% endif %}" 
+                   style="background: #667eea; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none; font-size: 14px;">
+                    Next →
+                </a>
+            {% else %}
+                <span style="background: #e9ecef; color: #6c757d; padding: 8px 16px; border-radius: 4px; font-size: 14px;">
+                    Next →
+                </span>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div style="background: white; padding: 60px; text-align: center; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <div style="font-size: 64px; margin-bottom: 20px;">📭</div>
+        <h2 style="color: #2c3e50; margin-bottom: 10px;">No Messages Found</h2>
+        <p style="color: #7f8c8d; margin-bottom: 20px;">
+            {% if msg_type or status or sender_comp_id %}
+                No messages match your filters. Try adjusting your search criteria.
+            {% else %}
+                You haven't sent any FIX messages yet.
+            {% endif %}
+        </p>
+        <a href="/fix/send" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 5px; display: inline-block; font-weight: 600;">
+            📤 Send Your First Message
+        </a>
+    </div>
+    {% endif %}
+
+    <div style="margin-top: 20px; text-align: center;">
+        <a href="/fix" style="color: #667eea; text-decoration: none;">← Back to FIX Home</a>
+    </div>
+</div>
+{% endblock %}

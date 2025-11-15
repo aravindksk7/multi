@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+
+{% block title %}Send FIX Message{% endblock %}
+
+{% block content %}
+<div style="max-width: 700px; margin: 0 auto;">
+    <h1 style="color: #2c3e50; margin-bottom: 10px;">Send FIX Message</h1>
+    <p style="color: #7f8c8d; margin-bottom: 30px;">Create and send a new FIX protocol message</p>
+
+    {% if success %}
+    <div style="background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+        <strong>✓ Message Sent Successfully!</strong><br>
+        Message ID: {{ message_id }}
+        <div style="margin-top: 10px;">
+            <a href="/fix/messages/{{ message_id }}" style="color: #155724; text-decoration: underline;">View Message Details</a>
+        </div>
+    </div>
+    {% endif %}
+
+    {% if error %}
+    <div style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+        <strong>✗ Error:</strong> {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST" action="/fix/send" style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        
+        <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 5px; color: #2c3e50; font-weight: 600;">
+                Message Type <span style="color: #e74c3c;">*</span>
+            </label>
+            <select name="msg_type" required style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                <option value="">-- Select Message Type --</option>
+                <option value="D">D - NewOrderSingle (New Order)</option>
+                <option value="F">F - OrderCancelRequest (Cancel Order)</option>
+                <option value="G">G - OrderCancelReplaceRequest (Modify Order)</option>
+                <option value="8">8 - ExecutionReport</option>
+                <option value="9">9 - OrderCancelReject</option>
+                <option value="0">0 - Heartbeat</option>
+                <option value="A">A - Logon</option>
+                <option value="5">5 - Logout</option>
+            </select>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+            <div>
+                <label style="display: block; margin-bottom: 5px; color: #2c3e50; font-weight: 600;">
+                    Sender Comp ID <span style="color: #e74c3c;">*</span>
+                </label>
+                <input type="text" name="sender_comp_id" required 
+                       placeholder="e.g., CLIENT1" 
+                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+            </div>
+            
+            <div>
+                <label style="display: block; margin-bottom: 5px; color: #2c3e50; font-weight: 600;">
+                    Target Comp ID <span style="color: #e74c3c;">*</span>
+                </label>
+                <input type="text" name="target_comp_id" required 
+                       placeholder="e.g., BROKER1" 
+                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+            </div>
+        </div>
+
+        <div style="border-top: 2px solid #f0f0f0; padding-top: 20px; margin-top: 20px;">
+            <h3 style="color: #2c3e50; margin-bottom: 15px;">Order Details</h3>
+            <p style="color: #7f8c8d; font-size: 13px; margin-bottom: 15px;">
+                These fields are primarily for NewOrderSingle messages. Leave blank for other message types.
+            </p>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 5px; color: #2c3e50; font-weight: 600;">
+                    Client Order ID
+                </label>
+                <input type="text" name="cl_ord_id" 
+                       placeholder="e.g., ORD-20240101-001" 
+                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                <small style="color: #7f8c8d; font-size: 12px;">Unique identifier for this order</small>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 5px; color: #2c3e50; font-weight: 600;">
+                    Symbol
+                </label>
+                <input type="text" name="symbol" 
+                       placeholder="e.g., AAPL, MSFT, EUR/USD" 
+                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                <small style="color: #7f8c8d; font-size: 12px;">Trading symbol or ticker</small>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div>
+                    <label style="display: block; margin-bottom: 5px; color: #2c3e50; font-weight: 600;">
+                        Side
+                    </label>
+                    <select name="side" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                        <option value="">-- Select Side --</option>
+                        <option value="1">1 - Buy</option>
+                        <option value="2">2 - Sell</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label style="display: block; margin-bottom: 5px; color: #2c3e50; font-weight: 600;">
+                        Order Type
+                    </label>
+                    <select name="ord_type" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                        <option value="">-- Select Type --</option>
+                        <option value="1">1 - Market</option>
+                        <option value="2">2 - Limit</option>
+                        <option value="3">3 - Stop</option>
+                        <option value="4">4 - Stop Limit</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                <div>
+                    <label style="display: block; margin-bottom: 5px; color: #2c3e50; font-weight: 600;">
+                        Quantity
+                    </label>
+                    <input type="number" name="order_qty" min="0" step="1"
+                           placeholder="e.g., 100" 
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                </div>
+                
+                <div>
+                    <label style="display: block; margin-bottom: 5px; color: #2c3e50; font-weight: 600;">
+                        Price
+                    </label>
+                    <input type="number" name="price" min="0" step="0.01"
+                           placeholder="e.g., 150.50" 
+                           style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                </div>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; margin-bottom: 5px; color: #2c3e50; font-weight: 600;">
+                    Time in Force
+                </label>
+                <select name="time_in_force" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                    <option value="">-- Select Time in Force --</option>
+                    <option value="0">0 - Day</option>
+                    <option value="1">1 - Good Till Cancel (GTC)</option>
+                    <option value="3">3 - Immediate or Cancel (IOC)</option>
+                    <option value="4">4 - Fill or Kill (FOK)</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-top: 30px;">
+            <button type="submit" style="flex: 1; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 24px; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: 600;">
+                📤 Send Message
+            </button>
+            <a href="/fix" style="flex: 0 0 auto; background: #e9ecef; color: #495057; border: none; padding: 12px 24px; border-radius: 5px; text-decoration: none; display: inline-block; text-align: center; font-size: 16px;">
+                Cancel
+            </a>
+        </div>
+    </form>
+
+    <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 5px;">
+        <strong>📌 Note:</strong> This sends a FIX message to the database for tracking. For actual trading system integration, 
+        connect this service to your FIX engine or gateway.
+    </div>
+</div>
+{% endblock %}

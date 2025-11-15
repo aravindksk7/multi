@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}FIX Message #{{ message.id }}{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <div style="margin-bottom: 20px;">
+        <a href="/fix/messages" style="color: #667eea; text-decoration: none;">← Back to Messages</a>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 20px;">
+        <div>
+            <h1 style="color: #2c3e50; margin-bottom: 5px;">FIX Message #{{ message.id }}</h1>
+            <p style="color: #7f8c8d; margin: 0;">Created {{ message.created_at.strftime('%Y-%m-%d %H:%M:%S') if message.created_at else 'Unknown' }}</p>
+        </div>
+        <div>
+            {% if message.status == 'PENDING' %}
+                <span style="background: #fff3cd; color: #856404; padding: 8px 16px; border-radius: 5px; font-size: 14px; font-weight: 600;">⏳ PENDING</span>
+            {% elif message.status == 'SENT' %}
+                <span style="background: #d1ecf1; color: #0c5460; padding: 8px 16px; border-radius: 5px; font-size: 14px; font-weight: 600;">📤 SENT</span>
+            {% elif message.status == 'ACKNOWLEDGED' %}
+                <span style="background: #d4edda; color: #155724; padding: 8px 16px; border-radius: 5px; font-size: 14px; font-weight: 600;">✓ ACKNOWLEDGED</span>
+            {% elif message.status == 'REJECTED' %}
+                <span style="background: #f8d7da; color: #721c24; padding: 8px 16px; border-radius: 5px; font-size: 14px; font-weight: 600;">✗ REJECTED</span>
+            {% elif message.status == 'FAILED' %}
+                <span style="background: #f8d7da; color: #721c24; padding: 8px 16px; border-radius: 5px; font-size: 14px; font-weight: 600;">⚠ FAILED</span>
+            {% else %}
+                <span style="background: #e9ecef; color: #495057; padding: 8px 16px; border-radius: 5px; font-size: 14px; font-weight: 600;">{{ message.status }}</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Message Overview -->
+    <div style="background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px;">
+        <h2 style="color: #2c3e50; margin-top: 0; margin-bottom: 20px;">Message Overview</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+            <div>
+                <label style="display: block; color: #7f8c8d; font-size: 13px; margin-bottom: 5px;">Message Type</label>
+                <div style="color: #2c3e50; font-weight: 600; font-size: 16px;">
+                    <span style="background: #e7f3ff; color: #0066cc; padding: 6px 12px; border-radius: 4px;">{{ message.msg_type }}</span>
+                    {% if message.msg_type == 'D' %}
+                        <span style="color: #6c757d; font-weight: normal; margin-left: 8px;">NewOrderSingle</span>
+                    {% elif message.msg_type == 'F' %}
+                        <span style="color: #6c757d; font-weight: normal; margin-left: 8px;">OrderCancelRequest</span>
+                    {% elif message.msg_type == 'G' %}
+                        <span style="color: #6c757d; font-weight: normal; margin-left: 8px;">OrderCancelReplace</span>
+                    {% elif message.msg_type == '8' %}
+                        <span style="color: #6c757d; font-weight: normal; margin-left: 8px;">ExecutionReport</span>
+                    {% elif message.msg_type == '0' %}
+                        <span style="color: #6c757d; font-weight: normal; margin-left: 8px;">Heartbeat</span>
+                    {% elif message.msg_type == 'A' %}
+                        <span style="color: #6c757d; font-weight: normal; margin-left: 8px;">Logon</span>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div>
+                <label style="display: block; color: #7f8c8d; font-size: 13px; margin-bottom: 5px;">Status</label>
+                <div style="color: #2c3e50; font-weight: 600; font-size: 16px;">{{ message.status }}</div>
+            </div>
+            
+            <div>
+                <label style="display: block; color: #7f8c8d; font-size: 13px; margin-bottom: 5px;">Sender Comp ID</label>
+                <div style="color: #2c3e50; font-weight: 600; font-size: 16px;">{{ message.sender_comp_id }}</div>
+            </div>
+            
+            <div>
+                <label style="display: block; color: #7f8c8d; font-size: 13px; margin-bottom: 5px;">Target Comp ID</label>
+                <div style="color: #2c3e50; font-weight: 600; font-size: 16px;">{{ message.target_comp_id }}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Details (if applicable) -->
+    {% if message.symbol or message.side or message.order_qty or message.price %}
+    <div style="background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px;">
+        <h2 style="color: #2c3e50; margin-top: 0; margin-bottom: 20px;">Order Details</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+            {% if message.cl_ord_id %}
+            <div>
+                <label style="display: block; color: #7f8c8d; font-size: 13px; margin-bottom: 5px;">Client Order ID</label>
+                <div style="color: #2c3e50; font-weight: 600; font-size: 16px;">{{ message.cl_ord_id }}</div>
+            </div>
+            {% endif %}
+            
+            {% if message.symbol %}
+            <div>
+                <label style="display: block; color: #7f8c8d; font-size: 13px; margin-bottom: 5px;">Symbol</label>
+                <div style="color: #2c3e50; font-weight: 600; font-size: 16px;">{{ message.symbol }}</div>
+            </div>
+            {% endif %}
+            
+            {% if message.side %}
+            <div>
+                <label style="display: block; color: #7f8c8d; font-size: 13px; margin-bottom: 5px;">Side</label>
+                <div style="font-weight: 600; font-size: 16px;">
+                    {% if message.side == '1' %}
+                        <span style="color: #28a745;">1 - BUY</span>
+                    {% elif message.side == '2' %}
+                        <span style="color: #dc3545;">2 - SELL</span>
+                    {% else %}
+                        <span style="color: #2c3e50;">{{ message.side }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if message.ord_type %}
+            <div>
+                <label style="display: block; color: #7f8c8d; font-size: 13px; margin-bottom: 5px;">Order Type</label>
+                <div style="color: #2c3e50; font-weight: 600; font-size: 16px;">
+                    {% if message.ord_type == '1' %}1 - Market
+                    {% elif message.ord_type == '2' %}2 - Limit
+                    {% elif message.ord_type == '3' %}3 - Stop
+                    {% elif message.ord_type == '4' %}4 - Stop Limit
+                    {% else %}{{ message.ord_type }}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if message.order_qty %}
+            <div>
+                <label style="display: block; color: #7f8c8d; font-size: 13px; margin-bottom: 5px;">Quantity</label>
+                <div style="color: #2c3e50; font-weight: 600; font-size: 16px;">{{ message.order_qty }}</div>
+            </div>
+            {% endif %}
+            
+            {% if message.price %}
+            <div>
+                <label style="display: block; color: #7f8c8d; font-size: 13px; margin-bottom: 5px;">Price</label>
+                <div style="color: #2c3e50; font-weight: 600; font-size: 16px;">${{ "%.2f"|format(message.price) }}</div>
+            </div>
+            {% endif %}
+            
+            {% if message.time_in_force %}
+            <div>
+                <label style="display: block; color: #7f8c8d; font-size: 13px; margin-bottom: 5px;">Time in Force</label>
+                <div style="color: #2c3e50; font-weight: 600; font-size: 16px;">
+                    {% if message.time_in_force == '0' %}0 - Day
+                    {% elif message.time_in_force == '1' %}1 - Good Till Cancel
+                    {% elif message.time_in_force == '3' %}3 - Immediate or Cancel
+                    {% elif message.time_in_force == '4' %}4 - Fill or Kill
+                    {% else %}{{ message.time_in_force }}
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Raw Message Data -->
+    <div style="background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px;">
+        <h2 style="color: #2c3e50; margin-top: 0; margin-bottom: 15px;">Raw FIX Message</h2>
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #dee2e6; font-family: 'Courier New', monospace; font-size: 13px; color: #495057; word-break: break-all; line-height: 1.8;">
+            {{ message.message_data }}
+        </div>
+        <p style="margin-top: 10px; color: #6c757d; font-size: 13px;">
+            This is the encoded FIX message as it would be transmitted over the network. 
+            Fields are separated by SOH (Start of Header) characters.
+        </p>
+    </div>
+
+    <!-- Timestamps -->
+    <div style="background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px;">
+        <h2 style="color: #2c3e50; margin-top: 0; margin-bottom: 20px;">Timestamps</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+            <div>
+                <label style="display: block; color: #7f8c8d; font-size: 13px; margin-bottom: 5px;">Created At</label>
+                <div style="color: #2c3e50; font-weight: 600; font-size: 16px;">
+                    {{ message.created_at.strftime('%Y-%m-%d %H:%M:%S') if message.created_at else 'N/A' }}
+                </div>
+            </div>
+            
+            <div>
+                <label style="display: block; color: #7f8c8d; font-size: 13px; margin-bottom: 5px;">Updated At</label>
+                <div style="color: #2c3e50; font-weight: 600; font-size: 16px;">
+                    {{ message.updated_at.strftime('%Y-%m-%d %H:%M:%S') if message.updated_at else 'N/A' }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; gap: 10px; justify-content: center;">
+        <a href="/fix/send" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; padding: 12px 24px; border-radius: 5px; font-weight: 600; display: inline-block;">
+            📤 Send Another Message
+        </a>
+        <a href="/fix/messages" style="background: #e9ecef; color: #495057; text-decoration: none; padding: 12px 24px; border-radius: 5px; font-weight: 600; display: inline-block;">
+            Back to List
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}FIX Protocol Messaging{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <h1 style="color: #2c3e50; margin-bottom: 10px;">FIX Protocol Messaging</h1>
+    <p style="color: #7f8c8d; margin-bottom: 30px;">Send and manage FIX protocol messages for financial trading systems</p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 40px;">
+        <a href="/fix/send" style="text-decoration: none;">
+            <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s;">
+                <h3 style="margin: 0 0 10px 0; font-size: 20px;">📤 Send FIX Message</h3>
+                <p style="margin: 0; opacity: 0.9; font-size: 14px;">Create and send a new FIX protocol message</p>
+            </div>
+        </a>
+
+        <a href="/fix/messages" style="text-decoration: none;">
+            <div style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s;">
+                <h3 style="margin: 0 0 10px 0; font-size: 20px;">📋 Message History</h3>
+                <p style="margin: 0; opacity: 0.9; font-size: 14px;">View all sent FIX messages and their status</p>
+            </div>
+        </a>
+    </div>
+
+    <div style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h2 style="color: #2c3e50; margin-top: 0;">What is FIX Protocol?</h2>
+        <p style="color: #555; line-height: 1.6;">
+            The Financial Information eXchange (FIX) Protocol is an industry-standard messaging protocol used for real-time electronic 
+            communication of securities transactions. This module allows you to:
+        </p>
+        
+        <ul style="color: #555; line-height: 1.8;">
+            <li><strong>Send Orders:</strong> Create NewOrderSingle (D) messages for buy/sell orders</li>
+            <li><strong>Cancel Orders:</strong> Request order cancellations</li>
+            <li><strong>Track Messages:</strong> Monitor message status and history</li>
+            <li><strong>View Details:</strong> Inspect raw FIX message content</li>
+        </ul>
+
+        <h3 style="color: #2c3e50; margin-top: 30px;">Common Message Types</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 15px;">
+            <div style="border: 1px solid #e1e8ed; padding: 15px; border-radius: 5px;">
+                <strong style="color: #667eea;">D - NewOrderSingle</strong>
+                <p style="margin: 5px 0 0 0; font-size: 13px; color: #777;">Submit a new order</p>
+            </div>
+            <div style="border: 1px solid #e1e8ed; padding: 15px; border-radius: 5px;">
+                <strong style="color: #f5576c;">F - OrderCancelRequest</strong>
+                <p style="margin: 5px 0 0 0; font-size: 13px; color: #777;">Request to cancel an order</p>
+            </div>
+            <div style="border: 1px solid #e1e8ed; padding: 15px; border-radius: 5px;">
+                <strong style="color: #4facfe;">0 - Heartbeat</strong>
+                <p style="margin: 5px 0 0 0; font-size: 13px; color: #777;">Connection heartbeat</p>
+            </div>
+            <div style="border: 1px solid #e1e8ed; padding: 15px; border-radius: 5px;">
+                <strong style="color: #43e97b;">A - Logon</strong>
+                <p style="margin: 5px 0 0 0; font-size: 13px; color: #777;">Session logon</p>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px; padding: 15px; background: #f8f9fa; border-left: 4px solid #667eea; border-radius: 4px;">
+            <strong style="color: #2c3e50;">💡 Quick Start:</strong>
+            <p style="margin: 10px 0 0 0; color: #555;">
+                Click "Send FIX Message" above to create a NewOrderSingle message. Fill in the required fields like 
+                symbol, side (1=Buy, 2=Sell), quantity, and price to send your first order.
+            </p>
+        </div>
+    </div>
+
+    <div style="margin-top: 20px; text-align: center;">
+        <a href="/" style="color: #667eea; text-decoration: none;">← Back to Home</a>
+        <span style="margin: 0 15px; color: #ddd;">|</span>
+        <a href="/api/docs#/FIX%20Messaging" style="color: #667eea; text-decoration: none;">API Documentation →</a>
+    </div>
+</div>
+{% endblock %}

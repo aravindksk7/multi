@@ -19,9 +19,12 @@ class Settings:
     PORT: int = int(os.getenv("PORT", "8000"))
     
     # Database
+    # Supports MySQL or SQLite
+    # MySQL: mysql+pymysql://user:pass@host:port/dbname
+    # SQLite: sqlite:///./testtool.db
     DATABASE_URL: str = os.getenv(
         "DATABASE_URL",
-        "mysql+pymysql://root:password@localhost:3306/testtool_db"
+        "sqlite:///./testtool.db"  # Default to SQLite for easy setup
     )
     
     # Pagination
