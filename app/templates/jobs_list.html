@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}Jobs List - Test Tool Platform{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2>Comparison Jobs</h2>
+        <a href="/compare/new" class="btn btn-success">New Comparison</a>
+    </div>
+    
+    <form method="GET" action="/jobs" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="status">Status</label>
+            <select id="status" name="status" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px;">
+                <option value="">All</option>
+                <option value="QUEUED" {% if status == "QUEUED" %}selected{% endif %}>Queued</option>
+                <option value="RUNNING" {% if status == "RUNNING" %}selected{% endif %}>Running</option>
+                <option value="COMPLETED" {% if status == "COMPLETED" %}selected{% endif %}>Completed</option>
+                <option value="FAILED" {% if status == "FAILED" %}selected{% endif %}>Failed</option>
+            </select>
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="suite_name">Suite Name</label>
+            <input type="text" id="suite_name" name="suite_name" value="{{ suite_name or '' }}" />
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="environment">Environment</label>
+            <input type="text" id="environment" name="environment" value="{{ environment or '' }}" />
+        </div>
+        
+        <div class="form-group" style="margin-bottom: 0;">
+            <label>&nbsp;</label>
+            <button type="submit" class="btn" style="width: 100%;">Filter</button>
+        </div>
+    </form>
+    
+    <p style="color: #666; margin-bottom: 1rem;">Total: {{ total }} job(s)</p>
+    
+    {% if jobs %}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Suite Name</th>
+                <th>Environment</th>
+                <th>Status</th>
+                <th>Result</th>
+                <th>Created</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for job in jobs %}
+            <tr>
+                <td><strong>#{{ job.id }}</strong></td>
+                <td>{{ job.suite_name or '-' }}</td>
+                <td>{{ job.environment or '-' }}</td>
+                <td>
+                    <span class="status-badge status-{{ job.status.value }}">{{ job.status.value }}</span>
+                </td>
+                <td>
+                    {% if job.summary %}
+                        <span class="result-badge result-{{ job.summary.status }}">
+                            {{ job.summary.status }}
+                        </span>
+                        <small style="color: #666;">
+                            ({{ job.summary.total_differences }} diff{{ 's' if job.summary.total_differences != 1 else '' }})
+                        </small>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    <small>{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+                </td>
+                <td>
+                    <a href="/jobs/{{ job.id }}" class="btn" style="padding: 0.5rem 1rem; font-size: 0.875rem;">View</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+    {% if total_pages > 1 %}
+    <div class="pagination">
+        {% if page > 1 %}
+        <a href="?page={{ page - 1 }}{% if status %}&status={{ status }}{% endif %}{% if suite_name %}&suite_name={{ suite_name }}{% endif %}{% if environment %}&environment={{ environment }}{% endif %}">
+            Previous
+        </a>
+        {% endif %}
+        
+        {% for p in range(1, total_pages + 1) %}
+            {% if p == page %}
+            <a href="#" class="active">{{ p }}</a>
+            {% else %}
+            <a href="?page={{ p }}{% if status %}&status={{ status }}{% endif %}{% if suite_name %}&suite_name={{ suite_name }}{% endif %}{% if environment %}&environment={{ environment }}{% endif %}">
+                {{ p }}
+            </a>
+            {% endif %}
+        {% endfor %}
+        
+        {% if page < total_pages %}
+        <a href="?page={{ page + 1 }}{% if status %}&status={{ status }}{% endif %}{% if suite_name %}&suite_name={{ suite_name }}{% endif %}{% if environment %}&environment={{ environment }}{% endif %}">
+            Next
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    {% else %}
+    <p style="text-align: center; color: #666; padding: 2rem;">
+        No jobs found. <a href="/compare/new">Create your first comparison</a>.
+    </p>
+    {% endif %}
+</div>
+{% endblock %}

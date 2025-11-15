@@ -1,0 +1,294 @@
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                     TEST TOOL PLATFORM - ARCHITECTURE                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+                                    USER
+                                     │
+                    ┌────────────────┴────────────────┐
+                    │                                 │
+                WEB UI                            REST API
+         (Jinja2 Templates)                  (JSON Responses)
+                    │                                 │
+                    └────────────────┬────────────────┘
+                                     │
+┌────────────────────────────────────┼─────────────────────────────────────────┐
+│                              FASTAPI APP                                     │
+│                             (app/main.py)                                    │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  ┌────────────────┐                              ┌─────────────────┐        │
+│  │  WEB ROUTES    │                              │  API ROUTES     │        │
+│  │  (web.py)      │                              │ (xml_compare.py)│        │
+│  │                │                              │                 │        │
+│  │ GET /          │                              │ POST /jobs      │        │
+│  │ GET /compare   │                              │ GET /jobs/{id}  │        │
+│  │ POST /compare  │                              │ GET /jobs       │        │
+│  │ GET /jobs      │                              │ DELETE /jobs    │        │
+│  │ GET /jobs/{id} │                              │                 │        │
+│  └────────┬───────┘                              └────────┬────────┘        │
+│           │                                               │                 │
+│           └───────────────────┬───────────────────────────┘                 │
+│                               │                                             │
+│                    ┌──────────▼──────────┐                                  │
+│                    │   JOB SERVICE       │                                  │
+│                    │ (job_service.py)    │                                  │
+│                    │                     │                                  │
+│                    │ create_and_run_job()│                                  │
+│                    │ get_job()           │                                  │
+│                    │ list_jobs()         │                                  │
+│                    │ delete_job()        │                                  │
+│                    └──────────┬──────────┘                                  │
+│                               │                                             │
+│              ┌────────────────┼────────────────┐                            │
+│              │                │                │                            │
+│    ┌─────────▼──────┐  ┌──────▼────────┐  ┌──▼──────────┐                 │
+│    │ XML COMPARE    │  │   MODELS      │  │  SCHEMAS    │                 │
+│    │ SERVICE        │  │ (models.py)   │  │ (schemas.py)│                 │
+│    │                │  │               │  │             │                 │
+│    │ XMLComparator  │  │ ComparisonJob │  │ Request/    │                 │
+│    │ compare_xml()  │  │ JobStatus     │  │ Response    │                 │
+│    │                │  │ DiffType      │  │ Validation  │                 │
+│    │ - parse_xml()  │  │               │  │             │                 │
+│    │ - build_map()  │  │               │  │             │                 │
+│    │ - compare()    │  │               │  │             │                 │
+│    │ - get_xpath()  │  │               │  │             │                 │
+│    └────────────────┘  └───────┬───────┘  └─────────────┘                 │
+│                                │                                            │
+└────────────────────────────────┼────────────────────────────────────────────┘
+                                 │
+                        ┌────────▼────────┐
+                        │   SQLALCHEMY    │
+                        │    DATABASE     │
+                        │  (database.py)  │
+                        └────────┬────────┘
+                                 │
+                        ┌────────▼────────┐
+                        │  MYSQL/MARIADB  │
+                        │                 │
+                        │ comparison_jobs │
+                        │  - id           │
+                        │  - suite_name   │
+                        │  - environment  │
+                        │  - status       │
+                        │  - baseline_xml │
+                        │  - current_xml  │
+                        │  - summary JSON │
+                        │  - diffs JSON   │
+                        │  - timestamps   │
+                        └─────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           DATA FLOW EXAMPLE                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+1. USER submits form with:
+   ┌──────────────────────────────────────┐
+   │ Baseline XML: <testsuite>...</>     │
+   │ Current XML:  <testsuite>...</>     │
+   │ Suite Name:   "Regression"          │
+   │ Environment:  "staging"             │
+   └──────────────────────────────────────┘
+                    │
+                    ▼
+2. WEB ROUTE (POST /compare) receives form data
+                    │
+                    ▼
+3. JOB SERVICE creates ComparisonJob record
+                    │
+                    ▼
+4. XML COMPARE SERVICE performs deep comparison
+   ┌──────────────────────────────────────┐
+   │ • Parse both XML documents          │
+   │ • Build node maps with XPath        │
+   │ • Compare attributes & text         │
+   │ • Detect ADDED/REMOVED/CHANGED      │
+   │ • Generate structured diff          │
+   └──────────────────────────────────────┘
+                    │
+                    ▼
+5. RESULT stored in database
+   ┌──────────────────────────────────────┐
+   │ {                                   │
+   │   "summary": {                      │
+   │     "added": 1,                     │
+   │     "removed": 0,                   │
+   │     "changed": 3,                   │
+   │     "status": "FAILED"              │
+   │   },                                │
+   │   "differences": [                  │
+   │     {                               │
+   │       "type": "CHANGED",            │
+   │       "path": "/testsuite/@status", │
+   │       "baseline_value": "pass",     │
+   │       "current_value": "fail"       │
+   │     }                               │
+   │   ]                                 │
+   │ }                                   │
+   └──────────────────────────────────────┘
+                    │
+                    ▼
+6. USER redirected to job detail page
+   Shows visual diff with color coding
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          FILE ORGANIZATION                                  │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+c:\multi/
+│
+├── app/                           # Application package
+│   ├── __init__.py
+│   ├── main.py                   # FastAPI entry point
+│   ├── config.py                 # Configuration management
+│   ├── database.py               # SQLAlchemy setup
+│   ├── models.py                 # Database models
+│   ├── schemas.py                # Pydantic schemas
+│   │
+│   ├── api/                      # API endpoints
+│   │   ├── __init__.py
+│   │   ├── web.py               # Web UI routes
+│   │   └── xml_compare.py       # REST API routes
+│   │
+│   ├── services/                 # Business logic
+│   │   ├── __init__.py
+│   │   ├── xml_compare.py       # XML comparison engine
+│   │   └── job_service.py       # Job management
+│   │
+│   └── templates/                # Jinja2 templates
+│       ├── base.html            # Base layout + CSS
+│       ├── index.html           # Home page
+│       ├── new_comparison.html  # Comparison form
+│       ├── jobs_list.html       # Jobs listing
+│       └── job_detail.html      # Job details
+│
+├── alembic/                      # Database migrations
+│   ├── env.py                   # Alembic environment
+│   ├── script.py.mako           # Migration template
+│   └── versions/
+│       └── 001_initial.py       # Initial schema
+│
+├── tests/                        # Test suite
+│   ├── __init__.py
+│   ├── conftest.py              # Pytest fixtures
+│   ├── test_xml_compare.py      # Comparison tests
+│   └── test_api.py              # API tests
+│
+├── examples/                     # Sample files
+│   ├── baseline.xml             # Sample baseline
+│   ├── current.xml              # Sample current
+│   └── README.md                # Usage instructions
+│
+├── requirements.txt              # Python dependencies
+├── alembic.ini                   # Alembic config
+├── pytest.ini                    # Pytest config
+├── .env                          # Environment variables
+├── .env.example                  # Environment template
+├── .gitignore                    # Git ignore rules
+├── setup.py                      # Setup script
+├── start.ps1                     # Quick start script
+├── README.md                     # Full documentation
+├── QUICK_REFERENCE.md           # Command reference
+├── PROJECT_SUMMARY.md           # Implementation summary
+└── IMPLEMENTATION_COMPLETE.txt  # Status document
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        TECHNOLOGY LAYERS                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│  PRESENTATION LAYER                                         │
+│  • Jinja2 Templates (HTML + CSS)                           │
+│  • Bootstrap-style responsive design                        │
+│  • Color-coded status indicators                           │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────▼───────────────────────────────┐
+│  WEB FRAMEWORK LAYER                                        │
+│  • FastAPI (async routes, dependency injection)            │
+│  • OpenAPI/Swagger documentation                           │
+│  • Pydantic validation                                     │
+│  • CORS middleware                                         │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────▼───────────────────────────────┐
+│  BUSINESS LOGIC LAYER                                       │
+│  • Job management service                                  │
+│  • XML comparison engine                                   │
+│  • XPath-based node identification                         │
+│  • Deep tree comparison                                    │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────▼───────────────────────────────┐
+│  DATA ACCESS LAYER                                          │
+│  • SQLAlchemy ORM                                          │
+│  • Query optimization                                       │
+│  • Connection pooling                                       │
+│  • Transaction management                                   │
+└─────────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────▼───────────────────────────────┐
+│  DATABASE LAYER                                             │
+│  • MySQL/MariaDB                                           │
+│  • Indexed tables                                          │
+│  • JSON column support                                      │
+│  • ACID compliance                                          │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       KEY IMPLEMENTATION DETAILS                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+XML COMPARISON ALGORITHM:
+1. Parse XML → lxml.etree (handles malformed XML gracefully)
+2. Normalize → remove whitespace, sort attributes
+3. Build maps → group nodes by tag+identifier
+4. Compare → recursive tree traversal with position matching
+5. Generate XPath → human-readable location paths
+6. Output → structured JSON with type annotations
+
+DATABASE SCHEMA:
+- Primary table: comparison_jobs
+- Indexes on: id, status, created_at, suite_name, environment, run_id
+- Composite indexes for common filter combinations
+- JSON columns for flexible diff storage
+- Timestamp tracking for audit trail
+
+API DESIGN:
+- RESTful endpoints following best practices
+- Automatic request/response validation
+- Structured error responses
+- Pagination for list endpoints
+- Query parameter filtering
+- OpenAPI 3.0 documentation
+
+UI DESIGN:
+- Server-side rendering (Jinja2)
+- Mobile-responsive CSS
+- Semantic HTML5
+- Accessible forms
+- Visual feedback (badges, colors)
+- Intuitive navigation
+
+TESTING STRATEGY:
+- Unit tests for comparison logic
+- Integration tests for API endpoints
+- Fixture-based test data
+- SQLite in-memory for isolation
+- Coverage of happy paths and edge cases
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            DEPLOYMENT READY                                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+✅ All code written and tested
+✅ Database migrations ready
+✅ Configuration externalized
+✅ Error handling implemented
+✅ Documentation complete
+✅ Example data provided
+✅ Setup scripts included
+✅ Dependencies locked
+
+NEXT: Run setup and start using!
+
+================================================================================

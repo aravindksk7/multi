@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}Job #{{ job.id }} - Test Tool Platform{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2>Job #{{ job.id }}</h2>
+        <a href="/jobs" class="btn">Back to List</a>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <div>
+            <h4 style="color: #666; margin-bottom: 0.5rem;">Status</h4>
+            <span class="status-badge status-{{ job.status.value }}">{{ job.status.value }}</span>
+        </div>
+        
+        <div>
+            <h4 style="color: #666; margin-bottom: 0.5rem;">Suite Name</h4>
+            <p>{{ job.suite_name or '-' }}</p>
+        </div>
+        
+        <div>
+            <h4 style="color: #666; margin-bottom: 0.5rem;">Environment</h4>
+            <p>{{ job.environment or '-' }}</p>
+        </div>
+        
+        <div>
+            <h4 style="color: #666; margin-bottom: 0.5rem;">Run ID</h4>
+            <p>{{ job.run_id or '-' }}</p>
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <div>
+            <h4 style="color: #666; margin-bottom: 0.5rem;">Created At</h4>
+            <p><small>{{ job.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</small></p>
+        </div>
+        
+        {% if job.started_at %}
+        <div>
+            <h4 style="color: #666; margin-bottom: 0.5rem;">Started At</h4>
+            <p><small>{{ job.started_at.strftime('%Y-%m-%d %H:%M:%S') }}</small></p>
+        </div>
+        {% endif %}
+        
+        {% if job.completed_at %}
+        <div>
+            <h4 style="color: #666; margin-bottom: 0.5rem;">Completed At</h4>
+            <p><small>{{ job.completed_at.strftime('%Y-%m-%d %H:%M:%S') }}</small></p>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if job.error_message %}
+    <div class="alert alert-error">
+        <strong>Error:</strong> {{ job.error_message }}
+    </div>
+    {% endif %}
+</div>
+
+{% if job.summary %}
+<div class="card">
+    <h3 style="margin-bottom: 1.5rem;">Comparison Summary</h3>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1.5rem; margin-bottom: 1.5rem;">
+        <div style="text-align: center; padding: 1rem; background: #d4edda; border-radius: 4px;">
+            <div style="font-size: 2rem; font-weight: bold; color: #155724;">{{ job.summary.added }}</div>
+            <div style="color: #155724;">Added</div>
+        </div>
+        
+        <div style="text-align: center; padding: 1rem; background: #f8d7da; border-radius: 4px;">
+            <div style="font-size: 2rem; font-weight: bold; color: #721c24;">{{ job.summary.removed }}</div>
+            <div style="color: #721c24;">Removed</div>
+        </div>
+        
+        <div style="text-align: center; padding: 1rem; background: #fff3cd; border-radius: 4px;">
+            <div style="font-size: 2rem; font-weight: bold; color: #856404;">{{ job.summary.changed }}</div>
+            <div style="color: #856404;">Changed</div>
+        </div>
+        
+        <div style="text-align: center; padding: 1rem; background: #f8f9fa; border-radius: 4px;">
+            <div style="font-size: 2rem; font-weight: bold; color: #333;">{{ job.summary.total_differences }}</div>
+            <div style="color: #666;">Total Differences</div>
+        </div>
+    </div>
+    
+    <div style="text-align: center; margin-top: 1rem;">
+        <span class="result-badge result-{{ job.summary.status }}" style="font-size: 1.1rem; padding: 0.5rem 1.5rem;">
+            {{ job.summary.status }}
+        </span>
+    </div>
+</div>
+{% endif %}
+
+{% if job.differences %}
+<div class="card">
+    <h3 style="margin-bottom: 1.5rem;">Detailed Differences ({{ job.differences|length }})</h3>
+    
+    <div class="diff-container">
+        {% for diff in job.differences %}
+        <div class="diff-item diff-{{ diff.type }}">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                <span class="status-badge status-{{ diff.type }}" style="font-size: 0.75rem;">
+                    {{ diff.type }}
+                </span>
+                <span style="font-size: 0.875rem; color: #666;">
+                    {{ diff.description or diff.type }}
+                </span>
+            </div>
+            
+            <div class="diff-path">{{ diff.path }}</div>
+            
+            {% if diff.baseline_value or diff.current_value %}
+            <div class="diff-values">
+                <div>
+                    <div class="diff-value-label" style="color: #721c24;">Baseline:</div>
+                    <div class="diff-value" style="background: white; padding: 0.5rem; border-radius: 4px;">
+                        {{ diff.baseline_value or '(none)' }}
+                    </div>
+                </div>
+                <div>
+                    <div class="diff-value-label" style="color: #155724;">Current:</div>
+                    <div class="diff-value" style="background: white; padding: 0.5rem; border-radius: 4px;">
+                        {{ diff.current_value or '(none)' }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

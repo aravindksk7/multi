@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}New XML Comparison - Test Tool Platform{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Create New XML Comparison</h2>
+    
+    {% if error %}
+    <div class="alert alert-error">
+        <strong>Error:</strong> {{ error }}
+    </div>
+    {% endif %}
+    
+    <form method="POST" action="/compare">
+        <div class="form-group">
+            <label for="baseline_xml">Baseline XML *</label>
+            <textarea 
+                id="baseline_xml" 
+                name="baseline_xml" 
+                required
+                placeholder="Paste your baseline XML here..."
+            ></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="current_xml">Current XML *</label>
+            <textarea 
+                id="current_xml" 
+                name="current_xml" 
+                required
+                placeholder="Paste your current XML here..."
+            ></textarea>
+        </div>
+        
+        <h3 style="margin-top: 2rem; margin-bottom: 1rem;">Metadata (Optional)</h3>
+        
+        <div class="form-group">
+            <label for="suite_name">Suite Name</label>
+            <input 
+                type="text" 
+                id="suite_name" 
+                name="suite_name" 
+                placeholder="e.g., Regression Suite"
+            />
+        </div>
+        
+        <div class="form-group">
+            <label for="environment">Environment</label>
+            <input 
+                type="text" 
+                id="environment" 
+                name="environment" 
+                placeholder="e.g., staging, production"
+            />
+        </div>
+        
+        <div class="form-group">
+            <label for="run_id">Run ID</label>
+            <input 
+                type="text" 
+                id="run_id" 
+                name="run_id" 
+                placeholder="e.g., run-123"
+            />
+        </div>
+        
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn btn-success">Compare XMLs</button>
+            <a href="/" class="btn">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h3>Sample XML Format</h3>
+    <pre style="background: #f8f9fa; padding: 1rem; border-radius: 4px; overflow-x: auto;"><code>&lt;testsuite name="Sample Test Suite" tests="3" failures="1"&gt;
+    &lt;testcase name="TC001" classname="tests.TestExample" time="0.123" status="pass"&gt;
+        &lt;result&gt;PASSED&lt;/result&gt;
+    &lt;/testcase&gt;
+    &lt;testcase name="TC002" classname="tests.TestExample" time="1.456" status="fail"&gt;
+        &lt;result&gt;FAILED&lt;/result&gt;
+        &lt;failure message="Assertion failed"&gt;Expected 5, got 3&lt;/failure&gt;
+    &lt;/testcase&gt;
+    &lt;testcase name="TC003" classname="tests.TestExample" time="0.789" status="pass"&gt;
+        &lt;result&gt;PASSED&lt;/result&gt;
+    &lt;/testcase&gt;
+&lt;/testsuite&gt;</code></pre>
+</div>
+{% endblock %}

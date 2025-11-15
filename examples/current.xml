@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="E2E Test Suite" tests="11" failures="2" errors="0" skipped="0" time="52.456" timestamp="2025-11-15T14:30:00">
+    <properties>
+        <property name="environment" value="staging"/>
+        <property name="browser" value="chrome"/>
+        <property name="version" value="2.0"/>
+    </properties>
+    
+    <testcase name="test_user_login" classname="tests.auth.TestAuthentication" time="2.567" status="pass">
+        <result>PASSED</result>
+        <system-out>User logged in successfully</system-out>
+    </testcase>
+    
+    <testcase name="test_user_logout" classname="tests.auth.TestAuthentication" time="1.456" status="fail">
+        <result>FAILED</result>
+        <failure message="Session not cleared">Expected session to be cleared but found active session</failure>
+        <system-out>User logout attempted</system-out>
+    </testcase>
+    
+    <testcase name="test_profile_view" classname="tests.profile.TestProfile" time="3.678" status="pass">
+        <result>PASSED</result>
+        <system-out>Profile page loaded</system-out>
+    </testcase>
+    
+    <testcase name="test_profile_update" classname="tests.profile.TestProfile" time="5.012" status="pass">
+        <result>PASSED</result>
+        <system-out>Profile updated successfully</system-out>
+    </testcase>
+    
+    <testcase name="test_create_item" classname="tests.items.TestItems" time="6.234" status="pass">
+        <result>PASSED</result>
+        <system-out>Item created</system-out>
+    </testcase>
+    
+    <testcase name="test_list_items" classname="tests.items.TestItems" time="3.123" status="pass">
+        <result>PASSED</result>
+        <system-out>Items listed</system-out>
+    </testcase>
+    
+    <testcase name="test_update_item" classname="tests.items.TestItems" time="4.567" status="fail">
+        <result>FAILED</result>
+        <failure message="Update validation failed">Item validation failed for field 'price'</failure>
+        <system-out>Item update attempted</system-out>
+    </testcase>
+    
+    <testcase name="test_delete_item" classname="tests.items.TestItems" time="2.345" status="pass">
+        <result>PASSED</result>
+        <system-out>Item deleted</system-out>
+    </testcase>
+    
+    <testcase name="test_search_functionality" classname="tests.search.TestSearch" time="7.890" status="pass">
+        <result>PASSED</result>
+        <system-out>Search completed</system-out>
+    </testcase>
+    
+    <testcase name="test_filter_results" classname="tests.search.TestSearch" time="5.678" status="pass">
+        <result>PASSED</result>
+        <system-out>Results filtered</system-out>
+    </testcase>
+    
+    <testcase name="test_export_data" classname="tests.export.TestExport" time="8.901" status="pass">
+        <result>PASSED</result>
+        <system-out>Data exported successfully</system-out>
+    </testcase>
+</testsuite>

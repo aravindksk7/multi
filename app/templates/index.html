@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Test Tool Platform{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>Welcome to Test Tool Platform</h2>
+    <p style="margin: 1rem 0; color: #666;">
+        A comprehensive platform for XML test report comparison and analysis.
+    </p>
+    
+    <div style="margin-top: 2rem;">
+        <h3 style="margin-bottom: 1rem;">Quick Actions</h3>
+        <div style="display: flex; gap: 1rem;">
+            <a href="/compare/new" class="btn btn-success">Create New XML Comparison</a>
+            <a href="/jobs" class="btn">View All Jobs</a>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Features</h3>
+    <ul style="margin-left: 1.5rem; margin-top: 1rem; line-height: 2;">
+        <li>Compare XML test reports with deep diff analysis</li>
+        <li>Track changes in test results over time</li>
+        <li>Web-based UI and REST API access</li>
+        <li>Filter and search through comparison history</li>
+        <li>XPath-based difference reporting</li>
+    </ul>
+</div>
+
+<div class="card">
+    <h3>Getting Started</h3>
+    <ol style="margin-left: 1.5rem; margin-top: 1rem; line-height: 2;">
+        <li>Click "Create New XML Comparison" to start</li>
+        <li>Upload or paste your baseline and current XML reports</li>
+        <li>Add optional metadata (suite name, environment, run ID)</li>
+        <li>Click "Compare" to generate a detailed diff report</li>
+        <li>View results with XPath-based change tracking</li>
+    </ol>
+</div>
+{% endblock %}
