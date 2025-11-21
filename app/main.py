@@ -7,13 +7,14 @@ from app.config import settings
 from app.api.xml_compare import router as xml_api_router
 from app.api.fix_messaging import router as fix_api_router
 from app.api.audio_compare import router as audio_api_router
+from app.api.protocol_testing import router as protocol_api_router
 from app.api.web import router as web_router
 
 # Create FastAPI app
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
-    description="Modular Test Tool Platform: XML Comparison, FIX Protocol Messaging & Audio Comparison",
+    description="Modular Test Tool Platform: XML Comparison, FIX Protocol Messaging, Audio Comparison & OUCH/ITCH Protocol Testing",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json"
@@ -32,6 +33,7 @@ app.add_middleware(
 app.include_router(xml_api_router)
 app.include_router(fix_api_router)
 app.include_router(audio_api_router)
+app.include_router(protocol_api_router)
 app.include_router(web_router)
 
 

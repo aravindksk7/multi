@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}{{ test.test_name }} - Protocol Test{% endblock %}
+
+{% block content %}
+<div style="max-width: 900px; margin: 0 auto;">
+    <h1 style="color: #2c3e50; margin-bottom: 10px;">{{ test.test_name }}</h1>
+    <p style="color: #7f8c8d; margin-bottom: 30px;">
+        {% if test.protocol_type.value == 'OUCH' %}
+        <span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; background: #d4edda; color: #155724;">
+            {{ test.protocol_type.value }} Protocol
+        </span>
+        {% else %}
+        <span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; background: #cfe2ff; color: #084298;">
+            {{ test.protocol_type.value }} Protocol
+        </span>
+        {% endif %}
+    </p>
+
+    <div class="card">
+        <h2 style="color: #2c3e50; margin-top: 0;">Test Information</h2>
+        <table style="width: 100%; border-collapse: collapse;">
+            <tr style="border-bottom: 1px solid #e1e8ed;">
+                <th style="padding: 12px; text-align: left; color: #555; font-weight: 600; width: 200px;">Test ID:</th>
+                <td style="padding: 12px;">{{ test.id }}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e1e8ed;">
+                <th style="padding: 12px; text-align: left; color: #555; font-weight: 600;">Protocol Type:</th>
+                <td style="padding: 12px;">{{ test.protocol_type.value }}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e1e8ed;">
+                <th style="padding: 12px; text-align: left; color: #555; font-weight: 600;">Status:</th>
+                <td style="padding: 12px;">
+                    <span class="status-badge status-{{ test.status.value }}">
+                        {{ test.status.value }}
+                    </span>
+                </td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e1e8ed;">
+                <th style="padding: 12px; text-align: left; color: #555; font-weight: 600;">Description:</th>
+                <td style="padding: 12px;">{{ test.test_description or 'N/A' }}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e1e8ed;">
+                <th style="padding: 12px; text-align: left; color: #555; font-weight: 600;">Messages Sent:</th>
+                <td style="padding: 12px;">{{ test.messages_sent }}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e1e8ed;">
+                <th style="padding: 12px; text-align: left; color: #555; font-weight: 600;">Messages Received:</th>
+                <td style="padding: 12px;">{{ test.messages_received }}</td>
+            </tr>
+            <tr style="border-bottom: 1px solid #e1e8ed;">
+                <th style="padding: 12px; text-align: left; color: #555; font-weight: 600;">Duration:</th>
+                <td style="padding: 12px;">{{ test.duration_seconds or 0 }} seconds</td>
+            </tr>
+            <tr>
+                <th style="padding: 12px; text-align: left; color: #555; font-weight: 600;">Created:</th>
+                <td style="padding: 12px;">{{ test.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            </tr>
+        </table>
+    </div>
+
+    {% if test.result_summary %}
+    <div class="card">
+        <h2 style="color: #2c3e50; margin-top: 0;">Test Results</h2>
+        <pre style="background: #f8f9fa; padding: 15px; border-radius: 4px; overflow-x: auto; font-family: 'Courier New', monospace; font-size: 14px; line-height: 1.5;">{{ test.result_summary | tojson(indent=2) }}</pre>
+    </div>
+    {% endif %}
+
+    <div style="margin-top: 20px; text-align: center;">
+        <a href="/protocols/tests" style="color: #4ade80; text-decoration: none;">← Back to Tests List</a>
+        <span style="margin: 0 15px; color: #ddd;">|</span>
+        <a href="/protocols/" style="color: #4ade80; text-decoration: none;">← Back to Protocols</a>
+    </div>
+</div>
+{% endblock %}

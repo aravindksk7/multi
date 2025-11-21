@@ -1,6 +1,6 @@
 # Test Tool Platform - Modular Testing Framework
 
-A comprehensive modular platform for test automation tools, featuring XML report comparison, FIX protocol messaging, and audio file comparison, built with Python, FastAPI, and SQLAlchemy.
+A comprehensive modular platform for test automation tools, featuring XML report comparison, FIX protocol messaging, audio file comparison, and OUCH/ITCH protocol testing, built with Python, FastAPI, and SQLAlchemy.
 
 ## Features
 
@@ -27,6 +27,14 @@ A comprehensive modular platform for test automation tools, featuring XML report
 - **Web UI**: Upload and compare audio files with detailed results
 - **REST API**: Programmatic audio comparison and analysis
 
+### OUCH/ITCH Protocol Testing Module
+- **NASDAQ Protocols**: Test OUCH (Order Entry) and ITCH (Market Data) protocols
+- **SoupBinTCP Sessions**: Manage protocol sessions with heartbeat monitoring
+- **Message Testing**: Create, send, and validate protocol messages
+- **Conformance Testing**: Protocol compliance verification
+- **Message History**: Track all sent and received messages
+- **REST API**: Programmatic protocol testing and validation
+
 ## Tech Stack
 
 - **Language**: Python 3.11+
@@ -39,6 +47,7 @@ A comprehensive modular platform for test automation tools, featuring XML report
 - **Testing**: pytest
 - **FIX Protocol**: SimpleFIX
 - **Audio Processing**: librosa, soundfile, numpy, scipy
+- **NASDAQ Protocols**: nasdaq-protocols
 
 ## Modular Architecture
 
@@ -47,6 +56,7 @@ The platform uses a feature-based modular architecture where each major feature 
 - `app/modules/xml_compare/` - XML comparison functionality
 - `app/modules/fix_messaging/` - FIX protocol messaging
 - `app/modules/audio_compare/` - Audio file comparison
+- `app/modules/protocol_testing/` - OUCH/ITCH protocol testing
 
 See [MODULAR_ARCHITECTURE.md](MODULAR_ARCHITECTURE.md) for detailed architecture documentation.
 

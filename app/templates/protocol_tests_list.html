@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Protocol Tests{% endblock %}
+
+{% block content %}
+<div style="max-width: 1200px; margin: 0 auto;">
+    <h1 style="color: #2c3e50; margin-bottom: 10px;">Protocol Tests</h1>
+    <p style="color: #7f8c8d; margin-bottom: 30px;">View and manage all OUCH/ITCH protocol tests</p>
+
+    <div style="margin-bottom: 20px;">
+        <a href="/protocols/test/create" class="btn btn-success">+ Create New Test</a>
+    </div>
+
+    <div class="card">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: #495057;">ID</th>
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: #495057;">Name</th>
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: #495057;">Protocol</th>
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: #495057;">Status</th>
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: #495057;">Messages</th>
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: #495057;">Created</th>
+                        <th style="padding: 12px; text-align: left; font-weight: 600; color: #495057;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for test in tests %}
+                    <tr style="border-bottom: 1px solid #dee2e6;">
+                        <td style="padding: 12px;">{{ test.id }}</td>
+                        <td style="padding: 12px;">
+                            <a href="/protocols/test/{{ test.id }}" style="color: #3498db; text-decoration: none;">
+                                {{ test.test_name }}
+                            </a>
+                        </td>
+                        <td style="padding: 12px;">
+                            {% if test.protocol_type.value == 'OUCH' %}
+                            <span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; background: #d4edda; color: #155724;">
+                                {{ test.protocol_type.value }}
+                            </span>
+                            {% else %}
+                            <span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; background: #cfe2ff; color: #084298;">
+                                {{ test.protocol_type.value }}
+                            </span>
+                            {% endif %}
+                        </td>
+                        <td style="padding: 12px;">
+                            <span class="status-badge status-{{ test.status.value }}">
+                                {{ test.status.value }}
+                            </span>
+                        </td>
+                        <td style="padding: 12px; color: #6c757d; font-size: 14px;">
+                            {{ test.messages_sent }} sent / {{ test.messages_received }} rcvd
+                        </td>
+                        <td style="padding: 12px; color: #6c757d; font-size: 14px;">
+                            {{ test.created_at.strftime('%Y-%m-%d %H:%M') }}
+                        </td>
+                        <td style="padding: 12px;">
+                            <a href="/protocols/test/{{ test.id }}" class="btn" style="padding: 6px 12px; font-size: 14px;">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div style="margin-top: 20px; color: #6c757d;">
+        Total: {{ total }} tests (Page {{ page }})
+    </div>
+
+    <div style="margin-top: 20px; text-align: center;">
+        <a href="/protocols/" style="color: #4ade80; text-decoration: none;">← Back to Protocols</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Create Protocol Test{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <h1 style="color: #2c3e50; margin-bottom: 10px;">Create Protocol Test</h1>
+    <p style="color: #7f8c8d; margin-bottom: 30px;">Configure a new OUCH or ITCH protocol test</p>
+    <form id="testForm" style="background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h3 style="color: #2c3e50; margin-bottom: 20px;">Test Configuration</h3>
+        
+        <div class="form-group">
+            <label>Test Name <span style="color: #e74c3c;">*</span></label>
+            <input type="text" id="testName" name="test_name" required placeholder="e.g., OUCH Order Entry Test">
+        </div>
+        
+        <div class="form-group">
+            <label>Protocol Type <span style="color: #e74c3c;">*</span></label>
+            <select id="protocolType" name="protocol_type" required style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; font-size: 1rem;">
+                <option value="">Select Protocol</option>
+                <option value="OUCH">OUCH (Order Entry)</option>
+                <option value="ITCH">ITCH (Market Data)</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>Test Description</label>
+            <textarea id="testDescription" name="test_description" rows="3" placeholder="Describe the purpose of this test..."></textarea>
+        </div>
+
+        <h3 style="color: #2c3e50; margin: 30px 0 20px 0; padding-top: 20px; border-top: 2px solid #f0f0f0;">Session Configuration</h3>
+        
+        <div class="form-group">
+            <label>Server Host <span style="color: #e74c3c;">*</span></label>
+            <input type="text" id="host" name="host" required placeholder="hostname or IP address">
+        </div>
+        
+        <div class="form-group">
+            <label>Server Port <span style="color: #e74c3c;">*</span></label>
+            <input type="number" id="port" name="port" min="1" max="65535" required placeholder="e.g., 9000">
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div class="form-group">
+                <label>Username <span style="color: #e74c3c;">*</span></label>
+                <input type="text" id="username" name="username" maxlength="50" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Password <span style="color: #e74c3c;">*</span></label>
+                <input type="password" id="password" name="password" maxlength="50" required>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label>Session ID</label>
+            <input type="text" id="sessionId" name="session_id" maxlength="50" placeholder="Optional - leave empty for default">
+            <small style="color: #7f8c8d; font-size: 12px;">Leave empty for default session</small>
+        </div>
+
+        <div style="margin-top: 30px; display: flex; gap: 10px;">
+            <button type="submit" class="btn btn-success">Create Test</button>
+            <a href="/protocols/" class="btn">Cancel</a>
+        </div>
+    </form>
+
+        <div id="result" style="margin-top: 20px;"></div>
+
+    <div style="margin-top: 20px; text-align: center;">
+        <a href="/protocols/" style="color: #4ade80; text-decoration: none;">← Back to Protocols</a>
+    </div>
+</div>
+
+<script>
+    document.getElementById('testForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData(e.target);
+        const data = {
+            test_name: formData.get('test_name'),
+            protocol_type: formData.get('protocol_type'),
+            test_description: formData.get('test_description') || null,
+            expected_messages: [],
+            config: {
+                host: formData.get('host'),
+                port: parseInt(formData.get('port')),
+                username: formData.get('username'),
+                password: formData.get('password'),
+                session_id: formData.get('session_id') || null
+            }
+        };
+        
+        try {
+            const response = await fetch('/api/protocols/test', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            });
+            
+            const result = await response.json();
+            
+            if (response.ok) {
+                document.getElementById('result').innerHTML = `
+                    <div style="background: #d4edda; border: 1px solid #c3e6cb; color: #155724; padding: 15px; border-radius: 5px;">
+                        <strong>✓ Test created successfully!</strong><br>
+                        Test ID: ${result.id}
+                        <div style="margin-top: 10px;">
+                            <a href="/protocols/test/${result.id}" style="color: #155724; text-decoration: underline;">View Test Details</a>
+                        </div>
+                    </div>
+                `;
+                e.target.reset();
+            } else {
+                document.getElementById('result').innerHTML = `
+                    <div style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 15px; border-radius: 5px;">
+                        <strong>✗ Error:</strong> ${result.detail || 'Failed to create test'}
+                    </div>
+                `;
+            }
+        } catch (error) {
+            document.getElementById('result').innerHTML = `
+                <div style="background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; padding: 15px; border-radius: 5px;">
+                    <strong>✗ Error:</strong> ${error.message}
+                </div>
+            `;
+        }
+    });
+
+    // Pre-fill protocol if in URL params
+    const urlParams = new URLSearchParams(window.location.search);
+    const protocol = urlParams.get('protocol');
+    if (protocol) {
+        document.getElementById('protocolType').value = protocol;
+    }
+</script>
+{% endblock %}
