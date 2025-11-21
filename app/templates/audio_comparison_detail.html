@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+
+{% block title %}Audio Comparison Details - Test Tool Platform{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2>🎵 Audio Comparison #{{ comparison.id }}</h2>
+        <div style="display: flex; gap: 0.5rem;">
+            <a 
+                href="/audio/comparisons" 
+                style="padding: 0.5rem 1rem; background: #e2e8f0; color: #333; border-radius: 4px; text-decoration: none; font-weight: 600;"
+            >
+                ← Back to List
+            </a>
+            <a 
+                href="/audio/compare" 
+                style="padding: 0.5rem 1rem; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; border-radius: 4px; text-decoration: none; font-weight: 600;"
+            >
+                + New Comparison
+            </a>
+        </div>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+        <div style="padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+            <div style="font-size: 12px; color: #666; margin-bottom: 0.25rem;">Test Name</div>
+            <div style="font-size: 16px; font-weight: 600;">{{ comparison.test_name }}</div>
+        </div>
+        
+        <div style="padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+            <div style="font-size: 12px; color: #666; margin-bottom: 0.25rem;">Status</div>
+            <div style="font-size: 16px; font-weight: 600;">
+                {% if comparison.status == 'COMPLETED' %}
+                <span style="color: #28a745;">✓ COMPLETED</span>
+                {% elif comparison.status == 'PROCESSING' %}
+                <span style="color: #ffc107;">⏳ PROCESSING</span>
+                {% elif comparison.status == 'FAILED' %}
+                <span style="color: #dc3545;">✗ FAILED</span>
+                {% else %}
+                <span>{{ comparison.status }}</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div style="padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+            <div style="font-size: 12px; color: #666; margin-bottom: 0.25rem;">Created</div>
+            <div style="font-size: 16px; font-weight: 600;">{{ comparison.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+        </div>
+        
+        {% if comparison.completed_at %}
+        <div style="padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+            <div style="font-size: 12px; color: #666; margin-bottom: 0.25rem;">Completed</div>
+            <div style="font-size: 16px; font-weight: 600;">{{ comparison.completed_at.strftime('%Y-%m-%d %H:%M:%S') }}</div>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if comparison.description %}
+    <div style="margin-top: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+        <div style="font-size: 12px; color: #666; margin-bottom: 0.5rem;">Description</div>
+        <div>{{ comparison.description }}</div>
+    </div>
+    {% endif %}
+</div>
+
+{% if comparison.status == 'FAILED' and comparison.error_message %}
+<div class="card" style="border-left: 4px solid #dc3545;">
+    <h3 style="color: #dc3545;">❌ Error</h3>
+    <p style="margin-top: 1rem; color: #666;">{{ comparison.error_message }}</p>
+</div>
+{% endif %}
+
+{% if comparison.status == 'COMPLETED' %}
+<!-- Summary Card -->
+<div class="card">
+    <h3>📊 Comparison Summary</h3>
+    {% if comparison.summary %}
+        {% set overall = comparison.summary.get('overall_match', 'UNKNOWN') %}
+        <div style="margin-top: 1rem; padding: 1.5rem; border-radius: 8px; text-align: center;
+            {% if overall == 'MATCH' %}
+                background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            {% elif overall == 'PARTIAL_MATCH' %}
+                background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+            {% elif overall == 'MISMATCH' %}
+                background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            {% endif %}
+        ">
+            <div style="font-size: 24px; font-weight: 700; margin-bottom: 0.5rem;
+                {% if overall == 'MATCH' %}color: #155724;{% elif overall == 'PARTIAL_MATCH' %}color: #856404;{% else %}color: #721c24;{% endif %}
+            ">
+                {% if overall == 'MATCH' %}✓ MATCH{% elif overall == 'PARTIAL_MATCH' %}≈ PARTIAL MATCH{% else %}✗ MISMATCH{% endif %}
+            </div>
+            {% if comparison.similarity_score is not none %}
+            <div style="font-size: 18px; color: #666;">
+                Audio Similarity: <strong>{{ "%.1f"|format(comparison.similarity_score) }}%</strong>
+            </div>
+            {% endif %}
+        </div>
+        
+        {% if comparison.summary.get('issues') %}
+        <div style="margin-top: 1.5rem; padding: 1rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #856404;">⚠️ Issues Found ({{ comparison.summary.get('issues_found', 0) }})</h4>
+            <ul style="margin: 0.5rem 0 0 1.5rem; color: #856404;">
+                {% for issue in comparison.summary.get('issues') %}
+                <li>{{ issue }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        {% if comparison.summary.get('recommendations') %}
+        <div style="margin-top: 1rem; padding: 1rem; background: #d1ecf1; border-left: 4px solid #17a2b8; border-radius: 4px;">
+            <h4 style="margin: 0 0 0.5rem 0; color: #0c5460;">💡 Recommendations</h4>
+            <ul style="margin: 0.5rem 0 0 1.5rem; color: #0c5460;">
+                {% for rec in comparison.summary.get('recommendations') %}
+                <li>{{ rec }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+<!-- Audio Files Card -->
+<div class="card">
+    <h3>🎧 Audio Files</h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1rem;">
+        <div>
+            <h4 style="margin: 0 0 1rem 0; padding-bottom: 0.5rem; border-bottom: 2px solid #4facfe; color: #4facfe;">
+                📁 Baseline Audio
+            </h4>
+            <table style="width: 100%; font-size: 14px;">
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #666;">Filename:</td>
+                    <td style="padding: 0.5rem 0; font-weight: 600;">{{ comparison.baseline_filename }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #666;">Duration:</td>
+                    <td style="padding: 0.5rem 0; font-weight: 600;">
+                        {% if comparison.baseline_duration %}{{ "%.3f"|format(comparison.baseline_duration) }} sec{% else %}N/A{% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #666;">Sample Rate:</td>
+                    <td style="padding: 0.5rem 0; font-weight: 600;">
+                        {% if comparison.baseline_sample_rate %}{{ comparison.baseline_sample_rate }} Hz{% else %}N/A{% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #666;">Channels:</td>
+                    <td style="padding: 0.5rem 0; font-weight: 600;">
+                        {% if comparison.baseline_channels %}
+                            {{ comparison.baseline_channels }} ({{ 'Mono' if comparison.baseline_channels == 1 else 'Stereo' if comparison.baseline_channels == 2 else 'Multi-channel' }})
+                        {% else %}N/A{% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #666;">Format:</td>
+                    <td style="padding: 0.5rem 0; font-weight: 600;">
+                        {% if comparison.baseline_format %}{{ comparison.baseline_format }}{% else %}N/A{% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        <div>
+            <h4 style="margin: 0 0 1rem 0; padding-bottom: 0.5rem; border-bottom: 2px solid #00f2fe; color: #00f2fe;">
+                📁 Current Audio
+            </h4>
+            <table style="width: 100%; font-size: 14px;">
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #666;">Filename:</td>
+                    <td style="padding: 0.5rem 0; font-weight: 600;">{{ comparison.current_filename }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #666;">Duration:</td>
+                    <td style="padding: 0.5rem 0; font-weight: 600;">
+                        {% if comparison.current_duration %}{{ "%.3f"|format(comparison.current_duration) }} sec{% else %}N/A{% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #666;">Sample Rate:</td>
+                    <td style="padding: 0.5rem 0; font-weight: 600;">
+                        {% if comparison.current_sample_rate %}{{ comparison.current_sample_rate }} Hz{% else %}N/A{% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #666;">Channels:</td>
+                    <td style="padding: 0.5rem 0; font-weight: 600;">
+                        {% if comparison.current_channels %}
+                            {{ comparison.current_channels }} ({{ 'Mono' if comparison.current_channels == 1 else 'Stereo' if comparison.current_channels == 2 else 'Multi-channel' }})
+                        {% else %}N/A{% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 0.5rem 0; color: #666;">Format:</td>
+                    <td style="padding: 0.5rem 0; font-weight: 600;">
+                        {% if comparison.current_format %}{{ comparison.current_format }}{% else %}N/A{% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Property Comparisons Card -->
+<div class="card">
+    <h3>🔍 Property Comparisons</h3>
+    <table style="width: 100%; border-collapse: collapse; margin-top: 1rem;">
+        <thead>
+            <tr style="background: #f8f9fa; border-bottom: 2px solid #e2e8f0;">
+                <th style="padding: 0.75rem; text-align: left;">Property</th>
+                <th style="padding: 0.75rem; text-align: center;">Result</th>
+                <th style="padding: 0.75rem; text-align: left;">Details</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if comparison.duration_match %}
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 0.75rem; font-weight: 600;">Duration</td>
+                <td style="padding: 0.75rem; text-align: center;">
+                    {% if comparison.duration_match == 'EXACT' %}
+                    <span style="color: #28a745; font-weight: 600;">✓ EXACT</span>
+                    {% elif comparison.duration_match == 'CLOSE' %}
+                    <span style="color: #ffc107; font-weight: 600;">≈ CLOSE</span>
+                    {% else %}
+                    <span style="color: #dc3545; font-weight: 600;">✗ DIFFERENT</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 0.75rem;">
+                    {% if comparison.baseline_duration and comparison.current_duration %}
+                    Diff: {{ "%.3f"|format((comparison.baseline_duration - comparison.current_duration)|abs) }} sec
+                    {% endif %}
+                </td>
+            </tr>
+            {% endif %}
+            
+            {% if comparison.sample_rate_match %}
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 0.75rem; font-weight: 600;">Sample Rate</td>
+                <td style="padding: 0.75rem; text-align: center;">
+                    {% if comparison.sample_rate_match == 'MATCH' %}
+                    <span style="color: #28a745; font-weight: 600;">✓ MATCH</span>
+                    {% else %}
+                    <span style="color: #dc3545; font-weight: 600;">✗ MISMATCH</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 0.75rem;">
+                    {{ comparison.baseline_sample_rate }} Hz vs {{ comparison.current_sample_rate }} Hz
+                </td>
+            </tr>
+            {% endif %}
+            
+            {% if comparison.channels_match %}
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 0.75rem; font-weight: 600;">Channels</td>
+                <td style="padding: 0.75rem; text-align: center;">
+                    {% if comparison.channels_match == 'MATCH' %}
+                    <span style="color: #28a745; font-weight: 600;">✓ MATCH</span>
+                    {% else %}
+                    <span style="color: #dc3545; font-weight: 600;">✗ MISMATCH</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 0.75rem;">
+                    {{ comparison.baseline_channels }} vs {{ comparison.current_channels }}
+                </td>
+            </tr>
+            {% endif %}
+            
+            {% if comparison.format_match %}
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 0.75rem; font-weight: 600;">Format</td>
+                <td style="padding: 0.75rem; text-align: center;">
+                    {% if comparison.format_match == 'MATCH' %}
+                    <span style="color: #28a745; font-weight: 600;">✓ MATCH</span>
+                    {% else %}
+                    <span style="color: #dc3545; font-weight: 600;">✗ MISMATCH</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 0.75rem;">
+                    {{ comparison.baseline_format }} vs {{ comparison.current_format }}
+                </td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+{% if comparison.differences %}
+<!-- Detailed Differences Card -->
+<div class="card">
+    <h3>📋 Detailed Differences</h3>
+    <div style="margin-top: 1rem;">
+        {% for diff in comparison.differences %}
+        <div style="padding: 1rem; margin-bottom: 0.75rem; background: #f8f9fa; border-left: 4px solid 
+            {% if diff.status == 'EXACT' or diff.status == 'MATCH' %}#28a745{% elif diff.status == 'CLOSE' %}#ffc107{% else %}#dc3545{% endif %}; border-radius: 4px;">
+            <div style="font-weight: 600; margin-bottom: 0.5rem;">{{ diff.property|title }}</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 14px;">
+                <div>
+                    <span style="color: #666;">Baseline:</span> <strong>{{ diff.baseline_value }}</strong>
+                </div>
+                <div>
+                    <span style="color: #666;">Current:</span> <strong>{{ diff.current_value }}</strong>
+                </div>
+            </div>
+            {% if diff.difference %}
+            <div style="margin-top: 0.5rem; font-size: 14px; color: #666;">
+                Difference: <strong>{{ diff.difference }}</strong>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}

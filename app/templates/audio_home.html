@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Audio Comparison - Test Tool Platform{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>🎵 Audio Comparison Module</h2>
+    <p style="margin: 1rem 0; color: #666;">
+        Compare two audio files for conformance with spectral analysis, similarity scoring, and format verification.
+    </p>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+        <a href="/audio/compare" style="text-decoration: none;">
+            <div style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.2s;">
+                <h3 style="margin: 0 0 10px 0; font-size: 18px;">🎧 Compare Audio Files</h3>
+                <p style="margin: 0; opacity: 0.9; font-size: 14px;">
+                    Upload and compare two audio files
+                </p>
+            </div>
+        </a>
+        
+        <a href="/audio/comparisons" style="text-decoration: none;">
+            <div style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #333; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: transform 0.2s;">
+                <h3 style="margin: 0 0 10px 0; font-size: 18px;">📊 View Comparisons</h3>
+                <p style="margin: 0; font-size: 14px;">
+                    Browse comparison history
+                </p>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <h3>How It Works</h3>
+    <div style="margin-top: 1rem;">
+        <ol style="margin-left: 1.5rem; line-height: 2;">
+            <li><strong>Upload Files:</strong> Select baseline and current audio files (WAV, MP3, FLAC, etc.)</li>
+            <li><strong>Automatic Analysis:</strong> System extracts audio properties (duration, sample rate, channels, format)</li>
+            <li><strong>Spectral Comparison:</strong> MFCC-based similarity scoring for audio content analysis</li>
+            <li><strong>Detailed Results:</strong> View property comparisons, similarity scores, and recommendations</li>
+        </ol>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+    <div class="card">
+        <h3>Audio Properties Analyzed</h3>
+        <ul style="margin-left: 1.5rem; margin-top: 1rem; line-height: 2;">
+            <li>Duration (seconds)</li>
+            <li>Sample Rate (Hz)</li>
+            <li>Channel Count (mono/stereo)</li>
+            <li>Audio Format (WAV, MP3, etc.)</li>
+            <li>Spectral Features (MFCC)</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h3>Comparison Features</h3>
+        <ul style="margin-left: 1.5rem; margin-top: 1rem; line-height: 2;">
+            <li>Audio similarity scoring (0-100%)</li>
+            <li>Format compatibility check</li>
+            <li>Duration matching verification</li>
+            <li>Sample rate consistency</li>
+            <li>Detailed difference tracking</li>
+        </ul>
+    </div>
+</div>
+
+<div class="card">
+    <h3>API Documentation</h3>
+    <p style="margin-top: 1rem; color: #666;">
+        Visit <a href="/api/docs" style="color: #00f2fe;">API documentation</a> for programmatic access to audio comparison endpoints.
+    </p>
+    <div style="margin-top: 1rem; padding: 1rem; background: #f8f9fa; border-radius: 4px; font-family: monospace; font-size: 14px;">
+        <div>POST /audio/compare - Compare two audio files</div>
+        <div>GET /audio/api/comparisons - List comparisons</div>
+        <div>GET /audio/api/comparisons/{id} - Get comparison details</div>
+        <div>DELETE /audio/api/comparisons/{id} - Delete comparison</div>
+    </div>
+</div>
+{% endblock %}

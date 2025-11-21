@@ -22,6 +22,12 @@ lxml>=5.0.0
 # FIX Protocol
 simplefix==1.0.16
 
+# Audio Processing
+librosa>=0.10.0
+soundfile>=0.12.0
+numpy>=1.24.0
+scipy>=1.11.0
+
 # Environment
 python-dotenv==1.0.0
 

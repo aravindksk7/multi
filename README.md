@@ -1,6 +1,6 @@
 # Test Tool Platform - Modular Testing Framework
 
-A comprehensive modular platform for test automation tools, featuring XML report comparison and FIX protocol messaging, built with Python, FastAPI, and SQLAlchemy.
+A comprehensive modular platform for test automation tools, featuring XML report comparison, FIX protocol messaging, and audio file comparison, built with Python, FastAPI, and SQLAlchemy.
 
 ## Features
 
@@ -19,6 +19,14 @@ A comprehensive modular platform for test automation tools, featuring XML report
 - **REST API**: Send messages and track status programmatically
 - **SimpleFIX Library**: Pure Python implementation, no C++ dependencies
 
+### Audio Comparison Module
+- **Audio File Analysis**: Compare audio files for conformance and quality
+- **Spectral Analysis**: MFCC-based similarity scoring (0-100%)
+- **Property Comparison**: Duration, sample rate, channels, and format verification
+- **Format Support**: WAV, MP3, FLAC, OGG, M4A, and more
+- **Web UI**: Upload and compare audio files with detailed results
+- **REST API**: Programmatic audio comparison and analysis
+
 ## Tech Stack
 
 - **Language**: Python 3.11+
@@ -30,6 +38,7 @@ A comprehensive modular platform for test automation tools, featuring XML report
 - **HTTP Server**: Uvicorn
 - **Testing**: pytest
 - **FIX Protocol**: SimpleFIX
+- **Audio Processing**: librosa, soundfile, numpy, scipy
 
 ## Modular Architecture
 
@@ -37,6 +46,7 @@ The platform uses a feature-based modular architecture where each major feature 
 
 - `app/modules/xml_compare/` - XML comparison functionality
 - `app/modules/fix_messaging/` - FIX protocol messaging
+- `app/modules/audio_compare/` - Audio file comparison
 
 See [MODULAR_ARCHITECTURE.md](MODULAR_ARCHITECTURE.md) for detailed architecture documentation.
 
@@ -51,20 +61,33 @@ multi/
 │   │   │   ├── schemas.py         # Pydantic schemas
 │   │   │   ├── service.py         # Business logic
 │   │   │   └── job_service.py
-│   │   └── fix_messaging/         # FIX Protocol Module
+│   │   ├── fix_messaging/         # FIX Protocol Module
+│   │   │   ├── models.py
+│   │   │   ├── schemas.py
+│   │   │   └── service.py
+│   │   └── audio_compare/         # Audio Comparison Module
 │   │       ├── models.py
 │   │       ├── schemas.py
 │   │       └── service.py
 │   ├── api/
 │   │   ├── web.py                 # Web UI routes
 │   │   ├── xml_compare.py         # XML REST API
-│   │   └── fix_messaging.py       # FIX REST API
+│   │   ├── fix_messaging.py       # FIX REST API
+│   │   └── audio_compare.py       # Audio REST API
 │   ├── templates/
 │   │   ├── base.html
 │   │   ├── index.html
 │   │   ├── new_comparison.html
 │   │   ├── jobs_list.html
-│   │   └── job_detail.html
+│   │   ├── job_detail.html
+│   │   ├── fix_home.html
+│   │   ├── fix_send.html
+│   │   ├── fix_messages_list.html
+│   │   ├── fix_message_detail.html
+│   │   ├── audio_home.html
+│   │   ├── audio_compare_form.html
+│   │   ├── audio_comparisons_list.html
+│   │   └── audio_comparison_detail.html
 │   ├── config.py                  # Application configuration
 │   ├── database.py                # Database setup
 │   ├── models.py                  # Model exports
@@ -72,20 +95,24 @@ multi/
 ├── alembic/
 │   ├── versions/
 │   │   ├── 001_initial_migration.py
-│   │   └── 002_add_fix_messages.py
+│   │   ├── 002_add_fix_messages.py
+│   │   └── 003_add_audio_comparisons.py
 │   └── env.py
 ├── tests/
 │   ├── conftest.py
 │   ├── test_xml_compare.py        # XML tests (9 tests)
 │   ├── test_api.py                # XML API tests (11 tests)
-│   └── test_fix_messaging.py      # FIX tests (8 tests)
+│   ├── test_fix_messaging.py      # FIX tests (8 tests)
+│   └── test_audio_compare.py      # Audio tests (12 tests)
 ├── requirements.txt
 ├── alembic.ini
 ├── .env.example
 ├── README.md
-├── FIX_MESSAGING_GUIDE.md         # FIX Protocol documentation
-├── MODULAR_ARCHITECTURE.md        # Architecture guide
-└── SQLITE_BACKEND.md              # SQLite setup guide
+├── docs/
+│   ├── FIX_MESSAGING_GUIDE.md     # FIX Protocol documentation
+│   ├── AUDIO_COMPARISON_GUIDE.md  # Audio Comparison documentation
+│   ├── MODULAR_ARCHITECTURE.md    # Architecture guide
+│   └── SQLITE_BACKEND.md          # SQLite setup guide
 ```
 
 ## Installation
