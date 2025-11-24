@@ -14,10 +14,14 @@ A comprehensive modular platform for test automation tools, featuring XML report
 
 ### FIX Protocol Messaging Module
 - **FIX Message Creation**: Build and send FIX 4.4 protocol messages
+- **Server Endpoint Integration**: Send messages directly to FIX server via TCP socket
+- **Configurable Endpoints**: Specify host and port for each message or session
 - **Order Management**: Support for NewOrderSingle, OrderCancel, and other message types
-- **Message History**: Store and query all sent FIX messages
+- **Message History**: Store and query all sent FIX messages with status tracking
+- **Connection Monitoring**: Track SENT, FAILED, ACKNOWLEDGED statuses
 - **REST API**: Send messages and track status programmatically
 - **SimpleFIX Library**: Pure Python implementation, no C++ dependencies
+- **Test Server**: Included test server for local development and testing
 
 ### Audio Comparison Module
 - **Audio File Analysis**: Compare audio files for conformance and quality

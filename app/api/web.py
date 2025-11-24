@@ -152,6 +152,9 @@ async def fix_send_message(
     msg_type: str = Form(...),
     sender_comp_id: str = Form(...),
     target_comp_id: str = Form(...),
+    host: Optional[str] = Form(None),
+    port: Optional[int] = Form(None),
+    session_id: Optional[str] = Form(None),
     cl_ord_id: Optional[str] = Form(None),
     symbol: Optional[str] = Form(None),
     side: Optional[str] = Form(None),
@@ -159,7 +162,6 @@ async def fix_send_message(
     ord_type: Optional[str] = Form(None),
     price: Optional[str] = Form(None),
     time_in_force: Optional[str] = Form(None),
-    session_id: Optional[str] = Form(None),
     db: Session = Depends(get_db)
 ):
     """Handle FIX message send form submission."""
@@ -178,7 +180,7 @@ async def fix_send_message(
             session_id=session_id
         )
         
-        message = fix_service.create_fix_message(fix_request, db)
+        message = fix_service.create_fix_message(fix_request, db, host, port)
         return RedirectResponse(url=f"/fix/messages/{message.id}", status_code=303)
     
     except Exception as e:

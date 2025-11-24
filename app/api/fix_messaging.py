@@ -8,7 +8,8 @@ from app.modules.fix_messaging import (
     FixMessagingService,
     SendFixMessageRequest,
     FixMessageResponse,
-    FixMessageListResponse
+    FixMessageListResponse,
+    FixSessionConfig
 )
 
 router = APIRouter(prefix="/api/fix", tags=["FIX Messaging"])
@@ -16,15 +17,48 @@ router = APIRouter(prefix="/api/fix", tags=["FIX Messaging"])
 fix_service = FixMessagingService()
 
 
+@router.post("/sessions/{session_id}/config", status_code=201)
+async def configure_fix_session(
+    session_id: str,
+    config: FixSessionConfig
+):
+    """
+    Configure a FIX session with server connection details.
+    
+    This allows you to set up connection parameters for a specific session,
+    including the target FIX server host and port.
+    
+    Example:
+    ```json
+    {
+        "sender_comp_id": "SENDER",
+        "target_comp_id": "TARGET",
+        "host": "fix.example.com",
+        "port": 9876,
+        "begin_string": "FIX.4.4",
+        "heartbeat_interval": 30
+    }
+    ```
+    """
+    fix_service.configure_session(session_id, config)
+    return {
+        "message": f"Session {session_id} configured successfully",
+        "config": config.dict()
+    }
+
+
 @router.post("/messages", response_model=FixMessageResponse, status_code=201)
 async def send_fix_message(
     request: SendFixMessageRequest,
+    host: Optional[str] = Query(None, description="Override FIX server host"),
+    port: Optional[int] = Query(None, description="Override FIX server port"),
     db: Session = Depends(get_db)
 ):
     """
-    Send a FIX protocol message.
+    Send a FIX protocol message to a FIX server.
     
-    This endpoint creates and sends a FIX message using the QuickFIX library.
+    This endpoint creates and sends a FIX message to the specified server endpoint.
+    You can provide host and port as query parameters, or configure a session first.
     
     Example for NewOrderSingle (D):
     ```json
@@ -41,8 +75,12 @@ async def send_fix_message(
         "time_in_force": "0"
     }
     ```
+    
+    Query Parameters:
+    - host: FIX server hostname/IP (default: localhost)
+    - port: FIX server port (default: 9876)
     """
-    fix_msg = fix_service.create_fix_message(request, db)
+    fix_msg = fix_service.create_fix_message(request, db, host, port)
     return fix_msg
 
 

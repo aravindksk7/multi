@@ -1,11 +1,13 @@
 """FIX Protocol Messaging Service using SimpleFIX."""
 import simplefix
+import socket
+import asyncio
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, Tuple
 from sqlalchemy.orm import Session
 
 from .models import FixMessage, FixMessageStatus, FixMessageType
-from .schemas import SendFixMessageRequest
+from .schemas import SendFixMessageRequest, FixSessionConfig
 
 
 class FixMessagingService:
@@ -14,22 +16,123 @@ class FixMessagingService:
     def __init__(self):
         """Initialize FIX messaging service."""
         self.msg_seq_num = 1
+        self.sessions: Dict[str, Dict[str, Any]] = {}  # Store session configs
+        self.default_host = "localhost"
+        self.default_port = 9876
+        self.socket_timeout = 10  # seconds
+    
+    def configure_session(
+        self,
+        session_id: str,
+        config: FixSessionConfig
+    ) -> None:
+        """
+        Configure a FIX session.
+        
+        Args:
+            session_id: Unique identifier for the session
+            config: Session configuration
+        """
+        self.sessions[session_id] = {
+            "sender_comp_id": config.sender_comp_id,
+            "target_comp_id": config.target_comp_id,
+            "host": config.host,
+            "port": config.port,
+            "begin_string": config.begin_string,
+            "heartbeat_interval": config.heartbeat_interval
+        }
+    
+    def _send_to_fix_server(
+        self,
+        raw_message: bytes,
+        host: str,
+        port: int
+    ) -> Tuple[bool, Optional[str], Optional[str]]:
+        """
+        Send FIX message to server via TCP socket.
+        
+        Args:
+            raw_message: Encoded FIX message
+            host: Server hostname or IP
+            port: Server port
+            
+        Returns:
+            Tuple of (success, response_message, error_message)
+        """
+        sock = None
+        try:
+            # Create socket connection
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            sock.settimeout(self.socket_timeout)
+            
+            # Connect to FIX server
+            sock.connect((host, port))
+            
+            # Send the FIX message
+            sock.sendall(raw_message)
+            
+            # Try to receive response (optional, some servers may not respond immediately)
+            try:
+                sock.settimeout(2)  # Short timeout for response
+                response = sock.recv(4096)
+                response_str = response.decode('latin-1') if response else None
+                return True, response_str, None
+            except socket.timeout:
+                # No response received, but send was successful
+                return True, None, None
+                
+        except socket.timeout:
+            error_msg = f"Connection timeout to {host}:{port}"
+            return False, None, error_msg
+            
+        except ConnectionRefusedError:
+            error_msg = f"Connection refused by {host}:{port}"
+            return False, None, error_msg
+            
+        except socket.gaierror as e:
+            error_msg = f"DNS resolution failed for {host}: {str(e)}"
+            return False, None, error_msg
+            
+        except Exception as e:
+            error_msg = f"Failed to send message: {str(e)}"
+            return False, None, error_msg
+            
+        finally:
+            if sock:
+                try:
+                    sock.close()
+                except:
+                    pass
     
     def create_fix_message(
         self,
         request: SendFixMessageRequest,
-        db: Session
+        db: Session,
+        host: Optional[str] = None,
+        port: Optional[int] = None
     ) -> FixMessage:
         """
-        Create and send a FIX message.
+        Create and send a FIX message to the server.
         
         Args:
             request: FIX message request data
             db: Database session
+            host: Override host (defaults to session or default host)
+            port: Override port (defaults to session or default port)
             
         Returns:
             FixMessage: Created FIX message record
         """
+        # Determine target host and port
+        target_host = host or self.default_host
+        target_port = port or self.default_port
+        
+        # Check if session config exists
+        if request.session_id and request.session_id in self.sessions:
+            session_config = self.sessions[request.session_id]
+            target_host = session_config.get("host", target_host)
+            target_port = session_config.get("port", target_port)
+        
         try:
             # Build FIX message
             message = self._build_fix_message(request)
@@ -57,9 +160,26 @@ class FixMessagingService:
             db.commit()
             db.refresh(fix_msg)
             
-            # Simulate sending (in real scenario, would use QuickFIX session)
-            fix_msg.status = FixMessageStatus.SENT
-            fix_msg.sent_at = datetime.utcnow()
+            # Send to FIX server
+            success, response_msg, error_msg = self._send_to_fix_server(
+                raw_message, 
+                target_host, 
+                target_port
+            )
+            
+            if success:
+                fix_msg.status = FixMessageStatus.SENT
+                fix_msg.sent_at = datetime.utcnow()
+                if response_msg:
+                    fix_msg.response_message = response_msg
+                    # If response indicates acknowledgment, update status
+                    if b'35=8' in raw_message or '35=8' in (response_msg or ''):
+                        fix_msg.status = FixMessageStatus.ACKNOWLEDGED
+                        fix_msg.acknowledged_at = datetime.utcnow()
+            else:
+                fix_msg.status = FixMessageStatus.FAILED
+                fix_msg.error_message = error_msg
+            
             db.commit()
             db.refresh(fix_msg)
             
@@ -76,7 +196,7 @@ class FixMessagingService:
                 target_comp_id=request.target_comp_id,
                 message_data="",
                 status=FixMessageStatus.FAILED,
-                error_message=str(e),
+                error_message=f"Message creation failed: {str(e)}",
                 session_id=request.session_id,
                 cl_ord_id=request.cl_ord_id,
                 symbol=request.symbol,
